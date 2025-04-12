@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐵</text></svg>">
+    <title>Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-stone-900 flex items-center justify-center min-h-screen">
+    <div class="bg-stone-800 p-8 rounded-lg shadow-lg w-full max-w-sm">
+        <h2 class="text-white text-2xl font-bold text-center mb-6">Create a account</h2>
+        <form id="register-form">
+            <div class="mb-4">
+                <label for="username" class="block text-stone-400 mb-1">Username</label>
+                <input type="text" id="username" class="w-full p-2 rounded-lg bg-stone-700 text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Username">
+            </div>
+            <div class="mb-4">
+                <label for="email" class="block text-stone-400 mb-1">E-mail</label>
+                <input type="email" id="email" class="w-full p-2 rounded-lg bg-stone-700 text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="E-mail">
+            </div>
+            <div class="mb-4">
+                <label for="password" class="block text-stone-400 mb-1">Password</label>
+                <input type="password" id="password" class="w-full p-2 rounded-lg bg-stone-700 text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Password">
+            </div>
+            <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 rounded-lg transition">Register</button>
+        <p class="text-stone-400 text-sm mt-4 text-center">Have an account? <a href="/login" class="text-blue-400 hover:text-blue-500">Login</a></p>
+    </div>
+
+    <script>
+        document.getElementById("register-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            let user = document.getElementById("username").value;
+            let email = document.getElementById("email").value;
+            let password = document.getElementById("password").value;
+
+            if(!user || !email || ! password){
+                Swal.fire({
+                  title: "Oops! Something's wrong!",
+                  text: "Plase make sure all fields are filled properly",
+                  icon: "error",
+                  background: "#1c1917",
+                  color: "#ffffff",
+                  iconColor: "#ef4444",
+                  confirmButtonText: "Ok",
+                  confirmButtonColor: "#2563eb",
+                });
+                return;
+            }
+
+            let response = await fetch("/api/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ user: user, email: email, password: password })
+            });
+
+            if(response.status == 406){
+                Swal.fire({
+                  title: "Oops! Too short!",
+                  text: "Each field must have at least 3 characters",
+                  icon: "error",
+                  background: "#1c1917",
+                  color: "#ffffff",
+                  iconColor: "#ef4444",
+                  confirmButtonText: "Ok",
+                  confirmButtonColor: "#2563eb",
+                });
+                return
+            }
+
+            if(response.status == 407){
+                Swal.fire({
+                  title: "Oops! There is something wrong with your email!",
+                  text: "Be sure that your email is valid",
+                  icon: "error",
+                  background: "#1c1917",
+                  color: "#ffffff",
+                  iconColor: "#ef4444",
+                  confirmButtonText: "Ok",
+                  confirmButtonColor: "#2563eb",
+                });
+                return
+            }
+
+            if(response.status == 409){
+                Swal.fire({
+                  title: "Account already exists",
+                  text: "This email or username is already in use. Try logging in or use a different one.",
+                  icon: "error",
+                  background: "#1c1917",
+                  color: "#ffffff",
+                  iconColor: "#ef4444",
+                  confirmButtonText: "Ok",
+                  confirmButtonColor: "#2563eb",
+                });
+                return;
+            }
+
+            if (response.status == 200) {
+                window.location.href = "/";
+            }
+        })
+    </script>
+</body>
+</html>

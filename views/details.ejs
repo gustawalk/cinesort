@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐵</text></svg>">
+    <title>Movie Detail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-stone-900 text-white flex items-center justify-center min-h-screen">
+
+    <button onclick="window.history.back()"
+      class="absolute top-4 left-4 bg-stone-700 hover:bg-stone-600 text-white px-4 py-2 rounded-lg shadow-md transition">
+        ← Home
+    </button>
+
+    <div class="flex flex-col items-center gap-6">
+        <div id="movie-info" class="text-center text-stone-300 w-full max-w-md p-6 bg-stone-800 rounded-lg shadow-lg">
+            <p class="animate-pulse">Loading...</p>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-4">
+            <button type="submit" id="add-movie"
+                class="transition duration-150 bg-stone-700 text-white rounded-lg shadow-md px-6 py-3 hover:bg-stone-600">
+                    Add movie to your list
+            </button>
+
+            <div class="flex flex-col">
+                <select id="list-selector" class="bg-stone-700 text-white px-6 py-3 rounded-lg shadow-md">
+                    <option>Preparing user lists...</option>
+                </select>
+
+            </div>
+        </div>
+        <form action="" id="new-list" class="flex gap-2 mt-2 flex-wrap">
+            <input type="text" id="new-list-input" placeholder="Your list name"
+                class="hidden p-2 bg-stone-700 text-white rounded-lg shadow-md" />
+            <button type="submit" id="new-list-button"
+                class="hidden bg-stone-700 text-white rounded-lg shadow-md px-4 py-2"
+            >Create</button>
+        </form>
+    </div>
+
+
+    <script>
+        async function load_user_list(){
+            const list_selector = document.getElementById("list-selector");
+
+            const response = await fetch("/api/user-list");
+            if (response.status == 404) {
+                list_selector.innerHTML = "<option value='default'>No lists found</option>";
+                const new_list_option = document.createElement("option");
+                new_list_option.value = "new";
+                new_list_option.textContent = "Create new list";
+                list_selector.appendChild(new_list_option);
+                return;
+            }
+
+            const lists = await response.json();
+            list_selector.innerHTML = "";
+
+            console.log(lists)
+
+            lists.forEach(list => {
+                const option = document.createElement("option");
+                option.value = list.id;
+                option.textContent = list.nome_lista;
+                list_selector.appendChild(option);
+            });
+
+            const new_list_option = document.createElement("option");
+            new_list_option.value = "new";
+            new_list_option.textContent = "New list";
+            list_selector.appendChild(new_list_option);
+        }
+
+        document.getElementById("list-selector").addEventListener("change", function(){
+            const newListInput = document.getElementById("new-list-input");
+            const newButtonInput = document.getElementById("new-list-button")
+            if (this.value === "new") {
+                newListInput.value = ""
+                newListInput.classList.remove("hidden");
+                newButtonInput.classList.remove("hidden");
+            } else {
+                newListInput.classList.add("hidden");
+                newButtonInput.classList.add("hidden");
+            }
+        });
+
+        document.getElementById("add-movie").addEventListener("click", async (e) => {
+            e.preventDefault()
+
+            const list_selector = document.getElementById("list-selector");
+
+            const movie_id = "<%= movie_id %>";
+            const list_id = list_selector.value;
+
+            if(list_id == "new" || list_id == "default"){
+                Swal.fire({
+                    title: "Could not find any list!",
+                    text: "Click in the list label on the right side of this button to create a new one.",
+                    icon: "question",
+                    background: "#1c1917",
+                    color: "#ffffff",
+                    iconColor: "#d6ed26",
+                    confirmButtonText: "Ok",
+                    confirmButtonColor: "#2563eb",
+                });
+                return;
+            }
+
+            const response = await fetch("/api/list/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ movie_imdb_id: movie_id, list_id: list_id})
+            })
+
+            if(response.status == 409){
+                Swal.fire({
+                    title: "The movie is already on this list",
+                    text: "Try searching for another movie or switching the target list!",
+                    icon: "error",
+                    background: "#1c1917",
+                    color: "#ffffff",
+                    iconColor: "#ef4444",
+                    confirmButtonText: "Ok",
+                    confirmButtonColor: "#2563eb",
+                });
+            }
+
+            if(response.status == 200){
+                Swal.fire({
+                    title: "Movie added successfully",
+                    text: "Now give the random sort a try!",
+                    icon: "success",
+                    background: "#1c1917",
+                    color: "#ffffff",
+                    iconColor: "#70FA82",
+                    confirmButtonText: "Ok",
+                    confirmButtonColor: "#2563eb",
+                });
+            }
+        })
+
+        document.getElementById("new-list").addEventListener("submit", async (e) => {
+            e.preventDefault()
+
+            let new_list_text = document.getElementById("new-list-input").value
+
+            const response = await fetch("/api/list/create", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ list_name: new_list_text })
+            })
+
+            if(response.status == 409){
+               Swal.fire({
+                title: "This list already exists",
+                text: "Try putting a different name!",
+                icon: "error",
+                background: "#1c1917",
+                color: "#ffffff",
+                iconColor: "#ef4444",
+                confirmButtonText: "Ok",
+                confirmButtonColor: "#2563eb",
+              });
+            }else if(response.status == 200){
+               window.location.reload();
+            }
+        })
+
+        async function load_data(){
+            const movie_element = document.getElementById("movie-info");
+            movie_element.innerHTML = `<p class="animate-pulse text-center">Loading...</p>`;
+
+            console.log('searching');
+            var response = await fetch(`/api/detail/<%= movie_id %>`);
+            console.log(response);
+
+            if (!response.ok) {
+                movie_element.innerHTML = `<p class="text-red-500">Error trying to fetch the movie data!</p>`;
+                return;
+            }
+
+            const data = await response.json();
+
+            movie_element.innerHTML = `
+                <h2 class="text-2xl font-bold text-center mb-4 text-white">${data.titulo} - ${data.ano}</h2>
+                <p>${data.duracao}</p>
+                <img src="${data.poster}" alt="${data.titulo}" class="mt-4 rounded-lg shadow-md mx-auto max-w-xs">
+                <p><strong>Director</strong> <br> ${data.diretor}</p>
+                <p class="mt-2"><strong>Synopsis</strong> <br>${data.sinopse}</p>
+            `;
+        }
+
+        window.onload = function() {
+            load_user_list();
+            load_data();
+        };
+    </script>
+</body>
+</html>

@@ -200,13 +200,14 @@ app.post("/api/list/add", async (req, res) => {
 });
 
 app.post("/api/list/edit/delete", async (req, res) => {
+
   const { movie_id, list_id } = req.body;
 
   await connection.promise().query(
     `DELETE FROM movie_lists WHERE movie_imdb_id = ? AND id_lista_origem = ?`, [movie_id, list_id]
   )
 
-  return res.status(200);
+  return res.status(200).json({ ok: "Ok" });
 })
 
 app.get("/api/user-list", async (req, res) => {

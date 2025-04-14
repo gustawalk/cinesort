@@ -271,8 +271,6 @@
             const lists = await response.json();
             list_selector.innerHTML = "";
 
-            console.log(lists)
-
             lists.forEach(list => {
                 const option = document.createElement("option");
                 option.value = list.id;
@@ -298,9 +296,7 @@
             const tabela = document.getElementById("movies-table");
             tabela.innerHTML = "<h2 class='text-white text-center animate-pulse'>Loading...</h2>";
 
-            console.log('searching');
             var response = await fetch(`/search/${input}`);
-            console.log(response);
             const data = await response.json();
 
             tabela.innerHTML = "";

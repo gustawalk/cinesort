@@ -1,9 +1,9 @@
-const puppeteer = require('puppeteer-extra')
-const puppeteerConf = require("./config")
-const connection = require('./db');
+const puppeteer = require('puppeteer-extra');
+const puppeteerConf = require("./config");
+const pool = require('./db');
 
-const StealthPlugin = require('puppeteer-extra-plugin-stealth')
-puppeteer.use(StealthPlugin())
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
 
 async function get_info_from_imdb(id_filme) {
   const browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox"] });
@@ -97,7 +97,7 @@ async function search_movie_on_imdb(filme) {
 
 async function search_movie_on_db(id_filme) {
   try {
-    const [result] = await connection.promise().query(
+    const [result] = await pool.query(
       `SELECT * FROM filmes WHERE imdb_id = ?`, [id_filme]
     );
 
@@ -115,4 +115,4 @@ async function search_movie_on_db(id_filme) {
   }
 }
 
-module.exports = { search_movie_on_imdb, get_info_from_imdb, search_movie_on_db }
+module.exports = { search_movie_on_imdb, get_info_from_imdb, search_movie_on_db };

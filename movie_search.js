@@ -36,7 +36,7 @@ async function get_info_from_imdb(id_filme) {
     const sinopse = getText('.mmImo') || getText('[data-testid="plot"]') || "Error fetching sinopsys";
     let poster = getSrc('.ipc-image');
 
-    const lista_sub_info = document.querySelectorAll('ul.joVhBE .ipc-inline-list__item');
+    const lista_sub_info = document.querySelectorAll('.cMcwpt .ipc-inline-list__item');
     const metadata = document.querySelectorAll('.ipc-metadata-list-item__list-content-item');
 
     const ano = lista_sub_info[0]?.innerText || "Error fetching year";

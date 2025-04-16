@@ -73,8 +73,10 @@ app.post("/api/list/sort", async (req, res) => {
   const { list_id } = req.body;
   if (list_id == undefined) return res.status(404).json({ error: "Invalido" });
 
+  const user_id = req.session.user.id;
+
   const [rows] = await pool.query(
-    `SELECT * FROM movie_lists WHERE id_lista_origem = ? ORDER BY RAND() LIMIT 1`, [list_id]
+    `SELECT ml.* FROM movie_lists AS ml JOIN listas ON ml.id_lista_origem = ? AND listas.id_user_dono = ? ORDER BY RAND() LIMIT 1`, [list_id, user_id]
   );
   if (rows.length == 0) return res.status(401).json({ error: "Nenhum filme na lista" });
 
@@ -102,7 +104,12 @@ app.delete("/api/list/delete", async (req, res) => {
   if (list_id == undefined) return res.status(404).json({ error: "Invalido" });
 
   await pool.query(`DELETE FROM listas WHERE id = ? AND id_user_dono = ?`, [list_id, user_id]);
-  await pool.query(`DELETE FROM movie_lists WHERE id_lista_origem = ?`, [list_id]);
+  await pool.query(`
+    DELETE ml
+    FROM movie_lists AS ml
+    JOIN listas ON ml.id_lista_origem = listas.id
+    WHERE ml.id_lista_origem = ? AND listas.id_user_dono = ?
+  `, [list_id, user_id]);
 
   res.status(200).json({ ok: "Ok" });
 });
@@ -113,8 +120,10 @@ app.post("/api/list/edit", async (req, res) => {
   const { list_id } = req.body;
   if (list_id == undefined) return res.status(404).json({ error: "Invalido" });
 
+  const user_id = req.session.user.id;
+
   const [rows] = await pool.query(
-    `SELECT * FROM movie_lists WHERE id_lista_origem = ?`, [list_id]
+    `SELECT ml.* FROM movie_lists AS ml JOIN listas ON ml.id_lista_origem = listas.id WHERE ml.id_lista_origem = ? AND listas.id_user_dono = ?`, [list_id, user_id]
   );
 
   const final_movies_info = [];
@@ -244,7 +253,7 @@ app.post("/api/register", async (req, res) => {
       name: user_data.name,
       id: user_data.id
     };
-    return res.status(200).json({ ok: "Register suceffuly!" });
+    return res.status(200).json({ ok: "Register sucessffuly!" });
   } catch (error) {
     return res.status(500).json({ error: "Erro interno do servidor" });
   }

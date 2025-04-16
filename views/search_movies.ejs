@@ -266,7 +266,14 @@
                 delete_button.disabled = true;
                 list_selector.innerHTML = "<option>No lists found</option>";
                 return;
-            }
+          }else{
+                sort_button.classList.remove("cursor-not-allowed")
+                sort_button.disabled = false;
+                edit_button.classList.remove("cursor-not-allowed")
+                edit_button.disabled = false;
+                delete_button.classList.remove("cursor-not-allowed")
+                delete_button.disabled = false;
+          }
 
             const lists = await response.json();
             list_selector.innerHTML = "";

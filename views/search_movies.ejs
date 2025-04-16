@@ -308,7 +308,7 @@
 
             tabela.innerHTML = "";
             data.map((res) => {
-                const url = new URL(res.link);
+                const url = new URL(res.link, 'https://www.imdb.com');
                 const pathname = url.pathname.split('/');
                 const movieId = pathname[2];
                 tabela.innerHTML += `<span class="text-white"><a href="/detail/${movieId}" class="text-blue-300 hover:text-blue-500">${res.title}</a> - ${res.year}</span><hr>`;

@@ -54,12 +54,24 @@
               <h1 class="text-center font-semibold">User Statistics:</h1>
               <br>
               <h3 class="font-medium grid grid-cols-2">
+                <span>Last Movie</span>
+                <span class="text-blue-400 font-bold text-right" id="last-movie"></span>
+              </h3>
+              <h3 class="font-medium grid grid-cols-2 pt-3">
                 <span>Watched Movies</span>
                 <span class="text-blue-400 font-bold text-right" id="user-watched-count"></span>
               </h3>
-              <h3 class="font-medium grid grid-cols-2">
+              <h3 class="font-medium grid grid-cols-2 pt-3">
                 <span>Unique Movies</span>
                 <span class="text-blue-400 font-bold text-right" id="user-diff-count"></span>
+              </h3>
+              <h3 class="font-medium grid grid-cols-2 pt-3">
+                <span>Highest Rated</span>
+                <span class="text-blue-400 font-bold text-right" id="highest-rated"></span>
+              </h3>
+              <h3 class="font-medium grid grid-cols-2 pt-3">
+                <span>Lowest Rated</span>
+                <span class="text-blue-400 font-bold text-right" id="lowest-rated"></span>
               </h3>
           </div>
         </div>
@@ -192,6 +204,12 @@
               <h2 class="text-xl font-bold">${movie_info.titulo} - ${movie_info.ano}</h2>
               <h4 class="text-sm text-gray-300">${movie_info.duracao}</h4>
               <img src="${movie_info.poster}" alt="Poster" class="w-full h-auto rounded-lg mt-3">
+              <label for="rating" class="mt-4">Rate this movie</label>
+              <div class="flex items-center justify-center gap-2 mt-1">
+                <input id="rating" type="number" min="0" max="100" value="0"
+                  class="w-20 text-center font-semibold text-black [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none px-2 py-1 rounded-md">
+                <span class="font-semibold text-white">/ 100</span>
+              </div>
               <button id="close-modal" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-8 rounded-lg transition">
                   Set as watched
               </button>
@@ -199,11 +217,65 @@
               </div>
             </div>
           `
-          document.getElementById("close-modal").addEventListener("click", () => {
+
+          document.getElementById("rating").addEventListener("input", () => {
+            console.log("coco")
+            let rating_input = document.getElementById("rating")
+            let rating_value = document.getElementById("rating").value
+
+            if(rating_value > 100){ rating_value = 100 }
+            if(rating_value < 0){ rating_value = 0}
+            if(rating_value === ""){ rating_value = 0}
+            if(rating_value.length > 1 && rating_value[0] === "0"){ rating_value = rating_value.slice(1)}
+
+            rating_input.value = rating_value
+          })
+          let cancel_beacon = false;
+          document.getElementById("close-modal").addEventListener("click", async () => {
+              cancel_beacon = true;
+              const movie_rating = document.getElementById("rating").value
+
+                console.log({
+                  list_id: list,
+                  sorted_movie: movie_info,
+                  rating_movie: movie_rating
+                })
+
+
+              const data = await fetch("/api/list/sort/rate", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                  list_id: list,
+                  sorted_movie: movie_info.imdb_id,
+                  title_movie: movie_info.titulo,
+                  rating_movie: movie_rating
+                })
+              })
+
+              const response = await data.json();
+
+              load_user_watched_count();
               sorted_movie.innerHTML = "";
               sorted_movie.classList.remove("fixed", "inset-0", "z-50")
+
           });
-          load_user_watched_count();
+
+          window.addEventListener("beforeunload", (event) => {
+              if(cancel_beacon){ return; }
+              const json = JSON.stringify({
+                list_id: list,
+                sorted_movie: movie_info.imdb_id,
+                title_movie: movie_info.titulo,
+                rating_movie: document.getElementById("rating")?.value ?? 000
+              });
+
+              const blob = new Blob([json], { type: "application/json" });
+
+              navigator.sendBeacon("/api/list/sort/rate/beacon", blob);
+          })
         })
 
         document.getElementById("delete").addEventListener("click", async (e) => {
@@ -236,17 +308,32 @@
         async function load_user_watched_count(){
           const span_count = document.getElementById("user-watched-count");
           const span_diff_count = document.getElementById("user-diff-count");
+          const highest_rated = document.getElementById("highest-rated");
+          const lowest_rated = document.getElementById("lowest-rated");
+          const last_movie = document.getElementById("last-movie");
 
           const response = await fetch("/api/user-watched-count");
           if(response.status == 404){
             span_count.innerHTML = "No data";
             span_diff_count.innerHTML = "No data";
+            highest_rated.innerHTML = "No data";
+            lowest_rated.innerHTML = "No data";
+            last_movie.innerHTML = "No data";
             return;
           }
 
           const data = await response.json();
           span_count.innerHTML = data.watchedCount;
           span_diff_count.innerHTML = data.watchedDiffCount;
+          if(data.highestRated.name_movie.length > 15){
+            data.highestRated.name_movie = data.highestRated.name_movie.slice(0, 13) + "...";
+          }
+          highest_rated.innerHTML = data.highestRated.name_movie;
+          if(data.lowestRated.name_movie.length > 15){
+            data.lowestRated.name_movie = data.lowestRated.name_movie.slice(0, 13) + "...";
+          }
+          lowest_rated.innerHTML = data.lowestRated.name_movie;
+          last_movie.innerHTML = data.lastMovie.name_movie;
         }
 
         async function load_user_list(){

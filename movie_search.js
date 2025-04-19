@@ -17,7 +17,7 @@ async function get_info_from_imdb(id_filme) {
     const getSrc = (selector) => $(selector).first().attr('src') || null;
 
     const titulo = getText('.hero__primary-text') || getText('h1') || "Error fetching title";
-    let sinopse = $('.mmImo').text().trim() || $('[data-testid="plot"]').text().trim() || "Error fetching synopsis";
+    let sinopse = $('.dMCKKz').text().trim() || $('[data-testid="plot"]').text().trim() || "Error fetching synopsis";
     sinopse = sinopse.replace(/Read all\s*$/i, '').trim();
     let poster = getSrc('.ipc-image');
 

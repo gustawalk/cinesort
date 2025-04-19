@@ -67,7 +67,7 @@ app.get("/api/user-watched-count", async (req, res) => {
   );
   const [highest_rated] = await pool.query(
     `
-      SELECT score_movie, name_movie, watched_at
+      SELECT score_movie, name_movie, watched_at, id_movie
       FROM watched_movies
       WHERE id_user = ?
       ORDER BY score_movie DESC, watched_at DESC
@@ -77,7 +77,7 @@ app.get("/api/user-watched-count", async (req, res) => {
 
   const [lowest_rated] = await pool.query(
     `
-      SELECT score_movie, name_movie, watched_at
+      SELECT score_movie, name_movie, watched_at, id_movie
       FROM watched_movies
       WHERE id_user = ?
       ORDER BY score_movie ASC, watched_at DESC
@@ -87,7 +87,7 @@ app.get("/api/user-watched-count", async (req, res) => {
 
   const [last_movie] = await pool.query(
     `
-      SELECT name_movie
+      SELECT name_movie, id_movie
       FROM watched_movies
       WHERE id_user = ?
       ORDER BY watched_at DESC
@@ -111,9 +111,33 @@ app.post("/api/list/sort", async (req, res) => {
   const [movie_sorted] = await pool.query(
     `SELECT * FROM filmes WHERE imdb_id = ?`, [rows[0].movie_imdb_id]
   );
+
+  await pool.query(
+    `
+      INSERT INTO pendencias (id_user_pendente, filme_id_imdb, id_lista_origem) VALUES (?, ?, ?)
+    `, [user_id, rows[0].movie_imdb_id, list_id]
+  );
+
   if (movie_sorted.length == 0) return res.status(401).json({ error: "Nenhum filme foi encontrado!" });
   res.status(200).json({ rows: movie_sorted });
 });
+
+app.post("/api/user/pendency", async (req, res) => {
+
+  const user_id = req.session.user.id;
+
+  const [pendency] = await pool.query(
+    `SELECT filme_id_imdb, id_lista_origem FROM pendencias WHERE id_user_pendente = ?`, [user_id]
+  )
+
+  if (pendency.length === 0) { return res.status(209).json({ Ok: "Sem pendencias" }) }
+
+  const [pendency_movie] = await pool.query(
+    `SELECT * FROM filmes WHERE imdb_id = ?`, [pendency[0].filme_id_imdb]
+  );
+
+  res.status(200).json({ pendencia: pendency_movie[0], list_id: pendency[0].id_lista_origem })
+})
 
 app.post("/api/list/sort/rate", async (req, res) => {
   const { list_id, sorted_movie, title_movie, rating_movie } = req.body;
@@ -122,8 +146,6 @@ app.post("/api/list/sort/rate", async (req, res) => {
 
   const user_id = req.session.user.id;
 
-  console.log(list_id, sorted_movie, rating_movie)
-
   await pool.query(
     `INSERT INTO watched_movies (id_user, id_movie, name_movie, score_movie) VALUES (?, ?, ?, ?)`,
     [user_id, sorted_movie, title_movie, rating_movie]
@@ -131,30 +153,12 @@ app.post("/api/list/sort/rate", async (req, res) => {
   await pool.query(
     `DELETE FROM movie_lists WHERE movie_imdb_id = ? AND id_lista_origem = ?`, [sorted_movie, list_id]
   )
+  await pool.query(
+    `DELETE FROM pendencias WHERE id_user_pendente = ? AND filme_id_imdb = ?`, [user_id, sorted_movie]
+  )
 
   res.status(200).json({ Ok: "Ok" })
 })
-
-app.post("/api/list/sort/rate/beacon", async (req, res) => {
-  try {
-    const parsed = req.body;
-    console.log("Beacon chegou:", parsed);
-
-    const user_id = req.session.user.id;
-
-    await pool.query(
-      `INSERT INTO watched_movies (id_user, id_movie, name_movie, score_movie) VALUES (?, ?, ?, ?)`,
-      [user_id, parsed.sorted_movie, parsed.title_movie, parsed.rating_movie]
-    )
-    await pool.query(
-      `DELETE FROM movie_lists WHERE movie_imdb_id = ? AND id_lista_origem = ?`, [parsed.sorted_movie, parsed.list_id]
-    )
-    res.sendStatus(200);
-  } catch (err) {
-    console.error("Erro ao processar beacon:", err);
-    res.sendStatus(400);
-  }
-});
 
 app.delete("/api/list/delete", async (req, res) => {
   const { list_id } = req.body;

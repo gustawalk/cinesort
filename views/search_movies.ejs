@@ -17,7 +17,9 @@
         <div class="bg-stone-900 text-white p-6 rounded-lg shadow-lg w-full max-w-md max-h-[70vh] overflow-hidden flex flex-col">
               <h2 id="edit-modal-title" class="text-xl font-bold mb-4"></h2>
                 <div id="edit-movie-list" class="overflow-auto flex-1 p-2 border border-stone-700 rounded-lg max-h-120">
-                  </div>
+                  <ul id="movie-list-ul">
+                  </ul>
+                </div>
                 <button id="close-edit-modal" class="mt-4 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition">
                    Close
                 </button>
@@ -59,11 +61,7 @@
               </h3>
               <h3 class="font-medium grid grid-cols-2 pt-3">
                 <span>Watched Movies</span>
-                <span class="text-blue-400 font-bold text-right" id="user-watched-count"></span>
-              </h3>
-              <h3 class="font-medium grid grid-cols-2 pt-3">
-                <span>Unique Movies</span>
-                <span class="text-blue-400 font-bold text-right" id="user-diff-count"></span>
+                <span class="text-blue-400 font-bold text-right hover:text-blue-700 transition duration-150" id="user-watched-count"></span>
               </h3>
               <h3 class="font-medium grid grid-cols-2 pt-3">
                 <span>Highest Rated</span>
@@ -78,9 +76,27 @@
     </div>
 
     <script>
+        function updateSearch(){
+          var input, filter, li, a, i, txtValue;
+          input = document.getElementById("search-list-input");
+          filter = input.value.toUpperCase();
+          li = document.getElementsByClassName("movie-in-list");
+
+          for(i=0; i < li.length; i++){
+            a = li[i];
+            txtValue = a.textContent || a.innerText;
+            txtValue = txtValue.split("\nDelete")[0]
+            if(txtValue.toUpperCase().indexOf(filter) > -1){
+              li[i].classList.remove("hidden");
+            }else{
+              li[i].classList.add("hidden");
+            }
+          }
+        }
+
         document.getElementById("edit").addEventListener("click", async(e) => {
           const list = document.getElementById("user-lists").value
-          const list_name = document.getElementById("user-lists").textContent
+          const list_name = document.getElementById("user-lists").options[document.getElementById("user-lists").selectedIndex].text;
 
           const response = await fetch("/api/list/edit", {
             method: "POST",
@@ -105,7 +121,22 @@
 
           const data = await response.json()
 
-          document.getElementById("edit-modal-title").innerHTML = `Editing: ${list_name}`
+          document.getElementById("edit-modal-title").innerHTML = `
+            Editing: ${list_name}
+            <br>
+            <div class="flex justify-between items-center">
+              <input
+                type="text"
+                id="search-list-input"
+                onkeyup="updateSearch()"
+                placeholder="Search in this list..."
+                class="mt-3 px-2 py-1 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder-gray-400 w-52 text-sm"
+              >
+              <span class="text-sm mt-3">
+                Movie count: ${data.movies_count[0].count}
+              </span>
+            </div>
+          `;
 
           const movie_list_container = document.getElementById("edit-movie-list");
           movie_list_container.innerHTML = "";
@@ -115,7 +146,7 @@
           }else{
             data.movies.forEach(movie => {
               const movie_item = document.createElement("div");
-              movie_item.classList.add("p-2", "border-b", "border-stone-700", "text-white", "flex", "justify-between");
+              movie_item.classList.add("p-2", "border-b", "border-stone-700", "text-white", "flex", "justify-between", "movie-in-list");
 
               movie_item.innerHTML = `
                 <a href='/detail/${movie.imdb_id}' class='text-white hover:text-blue-500 transition duration-150'>${movie.titulo}</a>
@@ -225,7 +256,6 @@
 
         async function load_user_watched_count(){
           const span_count = document.getElementById("user-watched-count");
-          const span_diff_count = document.getElementById("user-diff-count");
           const highest_rated = document.getElementById("highest-rated");
           const lowest_rated = document.getElementById("lowest-rated");
           const last_movie = document.getElementById("last-movie");
@@ -233,7 +263,6 @@
           const response = await fetch("/api/user-watched-count");
           if(response.status == 404){
             span_count.innerHTML = "No data";
-            span_diff_count.innerHTML = "No data";
             highest_rated.innerHTML = "No data";
             lowest_rated.innerHTML = "No data";
             last_movie.innerHTML = "No data";
@@ -241,8 +270,7 @@
           }
 
           const data = await response.json();
-          span_count.innerHTML = data.watchedCount;
-          span_diff_count.innerHTML = data.watchedDiffCount;
+          span_count.innerHTML = `<button type='submit' id="all-watched">${data.watchedCount}</button>`;
           if(data.highestRated.name_movie.length > 15){
             data.highestRated.name_movie = data.highestRated.name_movie.slice(0, 13) + "...";
           }
@@ -255,6 +283,70 @@
             data.lastMovie.name_movie = data.lastMovie.name_movie.slice(0, 13) + "...";
           }
           last_movie.innerHTML = `<a href=/detail/${data.lastMovie.id_movie}>${data.lastMovie.name_movie}</a>`;
+
+          document.getElementById("all-watched").addEventListener("click", async (e) => {
+
+            const response = await fetch("/api/users/all-watched");
+
+            const data = await response.json();
+
+            document.getElementById("edit-modal-title").innerHTML = `
+              Watched movies - ${data.total_view[0].total_sum}
+              <br>
+              <div class="flex justify-between items-center">
+                <input
+                  type="text"
+                  id="search-list-input"
+                  onkeyup="updateSearch()"
+                  placeholder="Search in this list..."
+                  class="mt-3 px-2 py-1 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder-gray-400 w-52 text-sm"
+                >
+              </div>
+            `;
+
+            const movie_list_container = document.getElementById("edit-movie-list");
+            movie_list_container.innerHTML = "";
+
+            if(data.movies.length == 0){
+              movie_list_container.innerHTML = "<p class='text-center text-gray-400'>You didn't watched any movie yet.</p>";
+            }else{
+              data.movies.forEach(movie => {
+                const movie_item = document.createElement("div");
+                movie_item.classList.add("p-2", "border-b", "border-stone-700", "text-white", "flex", "justify-between", "movie-in-list");
+
+                let score_fix = movie.score_movie.toString();
+
+                if(score_fix.length === 1){
+                  score_fix = `0.${score_fix[0]}`
+                }else if(score_fix.length === 2) {
+                  score_fix = `${score_fix[0]}.${score_fix[1]}`;
+                }else if(score_fix.length === 3) {
+                  score_fix = `${score_fix[0]}${score_fix[1]}`;
+                }
+
+                movie_item.innerHTML = `
+                  <a href='/detail/${movie.id_movie}' class='text-white hover:text-blue-500 transition duration-150'>
+                    ${movie.name_movie}
+                  </a>
+
+                  <div class="flex flex-col items-end">
+                    <span class="flex items-center gap-1">
+                      <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                           width="12" height="12" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-width="2" d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6Z"/>
+                        <path stroke="currentColor" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                      </svg>
+                      ${movie.times_watched}
+                    </span>
+                    <span class="text-sm text-gray-400">${score_fix}/10</span>
+                  </div>
+                `;
+                movie_list_container.appendChild(movie_item);
+              });
+            }
+
+          document.getElementById("edit-modal").classList.remove("hidden");
+        });
         }
 
         async function load_user_list(){
@@ -314,9 +406,9 @@
               <img src="${movie_info.poster}" alt="Poster" class="w-full h-auto rounded-lg mt-3">
               <label for="rating" class="mt-4">Rate this movie</label>
               <div class="flex items-center justify-center gap-2 mt-1">
-                <input id="rating" type="number" min="0" max="100" value="0"
+            <input id="rating" type="number" min="0" max="100" value="0"
                   class="w-20 text-center font-semibold text-black [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none px-2 py-1 rounded-md">
-                <span class="font-semibold text-white">/ 100</span>
+                <span class="font-semibold text-white">/ 10.0</span>
               </div>
               <button id="close-modal" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-8 rounded-lg transition">
                   Set as watched
@@ -327,18 +419,18 @@
           `
 
           document.getElementById("rating").addEventListener("input", () => {
-            let rating_input = document.getElementById("rating")
-            let rating_value = document.getElementById("rating").value
-
-            if(rating_value > 100){ rating_value = 100 }
-            if(rating_value < 0){ rating_value = 0}
-            if(rating_value === ""){ rating_value = 0}
-            if(rating_value.length > 1 && rating_value[0] === "0"){ rating_value = rating_value.slice(1)}
-
-            rating_input.value = rating_value
-          })
+              let ratingInput = document.getElementById("rating")
+              let ratingValue = ratingInput.value.replace(/\D/g, "");
+              if (ratingValue.length > 1 && ratingValue[0] === "0") {
+                ratingValue = ratingValue.slice(1);
+              }
+              let intValue = parseInt(ratingValue || "0");
+              intValue = Math.min(100, Math.max(0, intValue));
+              ratingInput.value = (intValue / 10).toFixed(1);
+              ratingInput.dataset.intValue = intValue;
+             })
           document.getElementById("close-modal").addEventListener("click", async () => {
-              const movie_rating = document.getElementById("rating").value
+              const movie_rating = document.getElementById("rating").dataset.intValue
 
               const data = await fetch("/api/list/sort/rate", {
                 method: "POST",

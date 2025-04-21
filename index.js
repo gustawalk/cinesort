@@ -60,10 +60,7 @@ app.get("/api/user-watched-count", async (req, res) => {
   if (!user_id) return res.status(404).json({ error: "Invalido" });
 
   const [count] = await pool.query(
-    'SELECT COUNT(*) AS count FROM watched_movies WHERE id_user = ?', [user_id]
-  );
-  const [diff_count] = await pool.query(
-    'SELECT COUNT(DISTINCT id_movie) AS diff_count FROM watched_movies WHERE id_user = ?', [user_id]
+    'SELECT COUNT(*) as count FROM watched_movies WHERE Id_user = ?', [user_id]
   );
   const [highest_rated] = await pool.query(
     `
@@ -94,7 +91,7 @@ app.get("/api/user-watched-count", async (req, res) => {
       LIMIT 1
     `, [user_id]
   );
-  return res.status(200).json({ watchedCount: count[0].count, watchedDiffCount: diff_count[0].diff_count, highestRated: highest_rated[0], lowestRated: lowest_rated[0], lastMovie: last_movie[0] });
+  return res.status(200).json({ watchedCount: count[0].count, highestRated: highest_rated[0], lowestRated: lowest_rated[0], lastMovie: last_movie[0] });
 });
 
 app.post("/api/list/sort", async (req, res) => {
@@ -146,10 +143,23 @@ app.post("/api/list/sort/rate", async (req, res) => {
 
   const user_id = req.session.user.id;
 
-  await pool.query(
-    `INSERT INTO watched_movies (id_user, id_movie, name_movie, score_movie) VALUES (?, ?, ?, ?)`,
-    [user_id, sorted_movie, title_movie, rating_movie]
+  const [exist_count] = await pool.query(
+    'SELECT times_watched, score_movie from watched_movies where id_movie = ? AND id_user = ?', [sorted_movie, user_id]
   )
+
+  if (exist_count[0] == undefined) {
+    await pool.query(
+      `INSERT INTO watched_movies (id_user, id_movie, name_movie, score_movie) VALUES (?, ?, ?, ?)`,
+      [user_id, sorted_movie, title_movie, rating_movie]
+    )
+  } else {
+    const total_count = exist_count[0].times_watched + 1;
+    const new_rate = rating_movie;
+    await pool.query(
+      'UPDATE watched_movies SET times_watched = ?, score_movie = ? WHERE id_movie = ? AND id_user = ?', [total_count, new_rate, sorted_movie, user_id]
+    )
+  }
+
   await pool.query(
     `DELETE FROM movie_lists WHERE movie_imdb_id = ? AND id_lista_origem = ?`, [sorted_movie, list_id]
   )
@@ -196,8 +206,28 @@ app.post("/api/list/edit", async (req, res) => {
     final_movies_info.push(...movie_info);
   }
 
-  return res.status(200).json({ movies: final_movies_info });
+  const [movies_count] = await pool.query(
+    'SELECT COUNT(*) AS count FROM movie_lists AS ml JOIN listas ON ml.id_lista_origem = listas.id WHERE ml.id_lista_origem = ? AND listas.id_user_dono = ?', [list_id, user_id]
+  )
+
+  return res.status(200).json({ movies: final_movies_info, movies_count: movies_count });
 });
+
+app.get("/api/users/all-watched", async (req, res) => {
+  if (!req.session.user) return res.status(404).json({ Error: "Erro ao pesquisar" });
+
+  const user_id = req.session.user.id;
+
+  const [rows] = await pool.query(
+    'SELECT * FROM watched_movies WHERE id_user = ?', [user_id]
+  );
+
+  const [total_view] = await pool.query(
+    'SELECT SUM(times_watched) AS total_sum FROM watched_movies WHERE id_user = ?', [user_id]
+  )
+
+  return res.status(200).json({ movies: rows, total_view: total_view })
+})
 
 app.post("/api/list/create", async (req, res) => {
   if (!req.session.user) return res.status(404).json({ Error: "Erro ao pesquisar" });

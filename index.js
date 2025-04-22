@@ -50,13 +50,8 @@ app.get("/", authMiddleware, (req, res) => {
 });
 
 app.get("/api/user-watched-count", async (req, res) => {
-  let user_id
-  try {
-    user_id = req.session.user.id;
-  } catch (error) {
-    console.log(error);
-    return;
-  }
+  if (!req.session.user) return res.status(404).json({ Error: "Erro ao pesquisar" });
+  const user_id = req.session.user.id;
   if (!user_id) return res.status(404).json({ error: "Invalido" });
 
   const [count] = await pool.query(
@@ -120,9 +115,8 @@ app.post("/api/list/sort", async (req, res) => {
 });
 
 app.post("/api/user/pendency", async (req, res) => {
-
+  if (!req.session.user) return res.status(404).json({ Error: "Erro ao pesquisar" });
   const user_id = req.session.user.id;
-
   const [pendency] = await pool.query(
     `SELECT filme_id_imdb, id_lista_origem FROM pendencias WHERE id_user_pendente = ?`, [user_id]
   )
@@ -137,6 +131,7 @@ app.post("/api/user/pendency", async (req, res) => {
 })
 
 app.post("/api/list/sort/rate", async (req, res) => {
+  if (!req.session.user) return res.status(404).json({ Error: "Erro ao pesquisar" });
   const { list_id, sorted_movie, title_movie, rating_movie } = req.body;
 
   if (list_id == undefined) return res.status(404).json({ error: "Invalido" });
@@ -250,12 +245,19 @@ app.post("/api/list/create", async (req, res) => {
 app.post("/api/list/add", async (req, res) => {
   const { movie_imdb_id, list_id } = req.body;
 
+  const user_id = req.session.user ? req.session.user.id : null;
+  if (user_id == null) return res.status(401).json({ error: "Usuário não autenticado" });
+
   try {
     const [rows] = await pool.query(
       `SELECT * FROM movie_lists WHERE id_lista_origem = ? AND movie_imdb_id = ?`, [list_id, movie_imdb_id]
     );
     if (rows.length !== 0) return res.status(409).json({ error: "O filme já está na lista selecionada" });
 
+    const [check_list] = await pool.query(
+      'SELECT * FROM listas WHERE id = ? AND id_user_dono = ?', [list_id, user_id]
+    )
+    if (check_list.length == 0) return res.status(204).json({ error: "A lista nao existe" })
     await pool.query(
       `INSERT INTO movie_lists (id_lista_origem, movie_imdb_id) VALUES (?, ?)`, [list_id, movie_imdb_id]
     );
@@ -322,7 +324,7 @@ app.post("/api/register", async (req, res) => {
     return emailPattern.test(email);
   }
 
-  if (user.length <= 3 || password.length <= 3)
+  if (user.length < 3 || password.length < 3)
     return res.status(406).json({ error: "Informacoes minimas nao suficientes" });
   if (!validateEmail(email))
     return res.status(407).json({ error: "Email invalido" });

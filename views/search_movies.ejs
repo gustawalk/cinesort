@@ -130,7 +130,7 @@
                 id="search-list-input"
                 onkeyup="updateSearch()"
                 placeholder="Search in this list..."
-                class="mt-3 px-2 py-1 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder-gray-400 w-52 text-sm"
+                class="mt-3 px-2 py-1 rounded-xl border border-gray-600 bg-gray-200 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 w-52 text-sm"
               >
               <span class="text-sm mt-3">
                 Movie count: ${data.movies_count[0].count}
@@ -266,11 +266,18 @@
             highest_rated.innerHTML = "No data";
             lowest_rated.innerHTML = "No data";
             last_movie.innerHTML = "No data";
+            window.location.href = "/login";
             return;
           }
 
           const data = await response.json();
-          span_count.innerHTML = `<button type='submit' id="all-watched">${data.watchedCount}</button>`;
+          span_count.innerHTML = `
+          <button type="button" id="all-watched">
+            <div class="flex items-center gap-1">
+            ${data.watchedCount}
+            </div>
+            </button>
+          `;
           if(data.highestRated.name_movie.length > 15){
             data.highestRated.name_movie = data.highestRated.name_movie.slice(0, 13) + "...";
           }
@@ -299,7 +306,7 @@
                   id="search-list-input"
                   onkeyup="updateSearch()"
                   placeholder="Search in this list..."
-                  class="mt-3 px-2 py-1 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder-gray-400 w-52 text-sm"
+                  class="mt-3 px-2 py-1 rounded-xl border border-gray-600 bg-gray-200 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 w-52 text-sm"
                 >
               </div>
             `;
@@ -501,6 +508,18 @@
           load_user_list();
           load_user_watched_count();
           check_dependency();
+        });
+
+        let lastFetchTime = 0;
+        window.addEventListener('focus', function(event){
+          const now = Date.now();
+
+          if(now - lastFetchTime > 2500){
+            load_user_list();
+            load_user_watched_count();
+            check_dependency();
+            lastFetchTime = now;
+          }
         });
     </script>
 </body>

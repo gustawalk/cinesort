@@ -40,8 +40,14 @@
 
         <div class="flex flex-col space-y-6 absolute left-[calc(100%+2rem)] top-1/2 -translate-y-1/2">
           <div class="bg-stone-700 p-7 rounded-lg shadow-lg w-80 text-center flex-shrink-0">
-              <label for="user-lists" class="text-white font-semibold">User lists:</label>
-              <br>
+
+              <div class="flex items-center justify-center gap-2">
+                <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                  <title>Search for a movie to create a new list</title>
+                  <path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm9.408-5.5a1 1 0 1 0 0 2h.01a1 1 0 1 0 0-2h-.01ZM10 10a1 1 0 1 0 0 2h1v3h-1a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2h-1v-4a1 1 0 0 0-1-1h-2Z" clip-rule="evenodd"/>
+                </svg>
+                <label for="user-lists" class="text-white font-semibold">User lists</label>
+              </div>
               <br>
               <select id="user-lists" class="bg-stone-600 text-white px-6 py-2 rounded-lg">
               </select>
@@ -53,7 +59,14 @@
           </div>
 
           <div class="bg-stone-700 p-7 rounded-lg shadow-lg w-80 text-left flex-shrink-0">
-              <h1 class="text-center font-semibold">User Statistics:</h1>
+            <div class="flex items-center justify-center gap-2">
+              <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                <title>Click on the items to view more details</title>
+                <path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm9.408-5.5a1 1 0 1 0 0 2h.01a1 1 0 1 0 0-2h-.01ZM10 10a1 1 0 1 0 0 2h1v3h-1a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2h-1v-4a1 1 0 0 0-1-1h-2Z" clip-rule="evenodd"/>
+              </svg>
+
+              <h1 class="text-center font-semibold">User Statistics</h1>
+            </div>
               <br>
               <h3 class="font-medium grid grid-cols-2">
                 <span>Last Movie</span>

@@ -2,6 +2,18 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const pool = require('./db');
 
+function check_poster(poster) {
+  let first_poster = poster.first();
+  let poster_sizes = first_poster.attr("sizes");
+
+  if (poster_sizes != "50vw, (min-width: 480px) 34vw, (min-width: 600px) 26vw, (min-width: 1024px) 16vw, (min-width: 1280px) 16vw") {
+    return `
+          https://upload.wikimedia.org/wikipedia/commons/archive/c/c2/20170513175702%21No_image_poster.png
+    `
+  }
+  return first_poster.attr('src');
+}
+
 async function get_info_from_imdb(id_filme) {
   try {
     const url = `https://www.imdb.com/title/${id_filme}/`;
@@ -14,12 +26,18 @@ async function get_info_from_imdb(id_filme) {
     const $ = cheerio.load(html);
 
     const getText = (selector) => $(selector).first().text().trim() || null;
-    const getSrc = (selector) => $(selector).first().attr('src') || null;
 
     const titulo = getText('.hero__primary-text') || getText('h1') || "Error fetching title";
-    let sinopse = $('.dMCKKz').text().trim() || $('[data-testid="plot"]').text().trim() || "Error fetching synopsis";
+
+    let sinopse = $('[data-testid="plot-l"]').text().trim();
+
+    if (!sinopse) sinopse = $('[data-testid="plot-xs_to_m"]').text().trim();
+    if (!sinopse) sinopse = $('[data-testid="plot-xl"]').text().trim();
+    if (!sinopse) sinopse = "Error fetching synopsis";
+
     sinopse = sinopse.replace(/Read all\s*$/i, '').trim();
-    let poster = getSrc('.ipc-image');
+
+    let poster_raw = $('.ipc-image');
 
     const lista_sub_info = $('.cMcwpt .ipc-inline-list__item');
     const metadata = $('.ipc-metadata-list-item__list-content-item');
@@ -28,10 +46,9 @@ async function get_info_from_imdb(id_filme) {
     const duracao = lista_sub_info.eq(2).text().trim() || lista_sub_info.eq(1).text().trim() || "Error fetching movie duration";
     const diretor = metadata.eq(0).text().trim() || "Error fetching director";
 
-    const svg_poster_undefined = $('svg.ipc-icon--movie.ipc-media__icon');
-    if (svg_poster_undefined.length > 0) {
-      poster = "Poster doesnt exist";
-    }
+    let poster = check_poster(poster_raw)
+    const imdb_rate = $('div[data-testid="hero-rating-bar__aggregate-rating__score"] span').first().text();
+
     return {
       titulo,
       sinopse,
@@ -39,7 +56,8 @@ async function get_info_from_imdb(id_filme) {
       duracao,
       diretor,
       poster,
-      imdb_id: id_filme
+      imdb_id: id_filme,
+      imdb_rate
     };
   } catch (error) {
     console.error("Erro ao buscar dados do IMDb:", error.message);

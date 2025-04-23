@@ -392,7 +392,7 @@ app.get("/api/detail/:movie", async (req, res) => {
   if (movie_info == null) {
     const movie_data = await get_info_from_imdb(movie_id);
     await pool.query(
-      `INSERT INTO filmes (titulo, sinopse, ano, duracao, diretor, poster, imdb_id) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO filmes (titulo, sinopse, ano, duracao, diretor, poster, imdb_id, imdb_rate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         movie_data.titulo,
         movie_data.sinopse,
@@ -401,6 +401,7 @@ app.get("/api/detail/:movie", async (req, res) => {
         movie_data.diretor,
         movie_data.poster,
         movie_data.imdb_id,
+        movie_data.imdb_rate,
       ]
     );
 

@@ -181,6 +181,19 @@ app.delete("/api/list/delete", async (req, res) => {
   res.status(200).json({ ok: "Ok" });
 });
 
+app.post("/api/user-rate", async (req, res) => {
+  if (!req.session.user) return res.status(404).json({ Error: "Erro ao pesquisar" });
+
+  const { movie_id } = req.body;
+  const user_id = req.session.user.id;
+
+  const [user_rated] = await pool.query(
+    'SELECT score_movie FROM watched_movies WHERE id_user = ? AND id_movie = ?', [user_id, movie_id]
+  );
+
+  return res.status(200).json({ user_rated });
+})
+
 app.post("/api/list/edit", async (req, res) => {
   if (!req.session.user) return res.status(404).json({ Error: "Erro ao pesquisar" });
 

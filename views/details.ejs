@@ -18,6 +18,8 @@
     <div class="flex flex-col items-center gap-6">
         <div id="movie-rate">
         </div>
+        <div id="user-rate">
+        </div>
         <div id="movie-info" class="text-center text-stone-300 w-full max-w-md p-6 bg-stone-800 rounded-lg shadow-lg">
             <p class="animate-pulse">Loading...</p>
         </div>
@@ -211,18 +213,94 @@
 
 
             const movie_rate = document.getElementById("movie-rate");
-            movie_rate.innerHTML = `
-              <div class="flex items-center gap-2 align-middle">
-                <svg class="w-6 h-6 text-yellow-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                     width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495
-                           2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067
-                           2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436
-                           2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z"/>
-                </svg>
-                <h1 class="text-lg font-bold">${data.imdb_rate} / 10</h1>
-              </div>
+
+            const user_movie_rate = await fetch("/api/user-rate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    movie_id: data.imdb_id
+                })
+            });
+
+            const user_movie_rate_data = await user_movie_rate.json();
+
+            if(user_movie_rate_data.user_rated[0] == undefined){
+                movie_rate.innerHTML = `
+                  <div class="flex items-center gap-2 align-middle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="30" viewBox="0 0 80 30">
+                    <rect width="80" height="30" fill="#F5C518" rx="8" ry="8"/>
+                    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+                        font-family="Arial, sans-serif" font-size="16" fill="black" font-weight="bold">
+                        IMDB
+                    </text>
+                    </svg>
+
+                    <svg class="w-6 h-6 text-yellow-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                         width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495
+                               2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067
+                               2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436
+                               2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z"/>
+                      <title>IMDB Rating</title>
+                    </svg>
+                    <h1 class="text-lg font-bold">${data.imdb_rate} / 10</h1>
+                  </div>
                 `;
+            }else{
+                let score_fix = user_movie_rate_data.user_rated[0].score_movie.toString();
+
+                if(score_fix.length === 1){
+                  score_fix = `0.${score_fix[0]}`
+                }else if(score_fix.length === 2) {
+                  score_fix = `${score_fix[0]}.${score_fix[1]}`;
+                }else if(score_fix.length === 3) {
+                  score_fix = `${score_fix[0]}${score_fix[1]}`;
+                }
+
+                movie_rate.innerHTML = `
+                  <div class="flex items-center gap-2 align-middle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="30" viewBox="0 0 80 30">
+                    <rect width="80" height="30" fill="#F5C518" rx="8" ry="8"/>
+                    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+                        font-family="Arial, sans-serif" font-size="16" fill="black" font-weight="bold">
+                        IMDB
+                    </text>
+                    </svg>
+
+                    <svg class="w-6 h-6 text-yellow-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                         width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495
+                               2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067
+                               2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436
+                               2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z"/>
+                      <title>IMDB Rating</title>
+                    </svg>
+                    <h1 class="text-lg font-bold">${data.imdb_rate} / 10</h1>
+
+                    <span class="pl-8 pr-8"></span>
+
+                    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="30" viewBox="0 0 80 30">
+                        <rect width="80" height="30" fill="#3B82F6" rx="8" ry="8"/>
+                        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+                        font-family="Arial, sans-serif" font-size="16" fill="white" font-weight="bold">
+                        User
+                        </text>
+                    </svg>
+
+                    <svg class="w-6 h-6 text-blue-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                         width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495
+                               2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067
+                               2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436
+                               2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z"/>
+                      <title>User Rating</title>
+                    </svg>
+                    <h1 class="text-lg font-bold">${score_fix} / 10</h1>
+                  </div>
+                `;
+            }
 
             const add_movie_btn = document.getElementById("add-movie");
             add_movie_btn.disabled = false;

@@ -138,6 +138,14 @@ app.post("/api/list/sort/rate", async (req, res) => {
 
   const user_id = req.session.user.id;
 
+  let raw_rate;
+
+  if(rating_movie == "" || rating_movie == undefined){
+    raw_rate = 0;
+  }else{
+    raw_rate = rating_movie;
+  }
+
   const [exist_count] = await pool.query(
     'SELECT times_watched, score_movie from watched_movies where id_movie = ? AND id_user = ?', [sorted_movie, user_id]
   )
@@ -145,13 +153,13 @@ app.post("/api/list/sort/rate", async (req, res) => {
   if (exist_count[0] == undefined) {
     await pool.query(
       `INSERT INTO watched_movies (id_user, id_movie, name_movie, score_movie) VALUES (?, ?, ?, ?)`,
-      [user_id, sorted_movie, title_movie, rating_movie]
+      [user_id, sorted_movie, title_movie, raw_rate]
     )
   } else {
     const total_count = exist_count[0].times_watched + 1;
-    const new_rate = rating_movie;
+    const new_rate = raw_rate;
     await pool.query(
-      'UPDATE watched_movies SET times_watched = ?, score_movie = ? WHERE id_movie = ? AND id_user = ?', [total_count, new_rate, sorted_movie, user_id]
+      'UPDATE watched_movies SET times_watched = ?, score_movie = ?, watched_at = CURRENT_TIMESTAMP WHERE id_movie = ? AND id_user = ?', [total_count, new_rate, sorted_movie, user_id]
     )
   }
 

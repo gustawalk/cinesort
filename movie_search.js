@@ -5,8 +5,9 @@ const pool = require('./db');
 function check_poster(poster) {
   let first_poster = poster.first();
   let poster_sizes = first_poster.attr("sizes");
+  let poster_loading = first_poster.attr("loading")
 
-  if (poster_sizes != "50vw, (min-width: 480px) 34vw, (min-width: 600px) 26vw, (min-width: 1024px) 16vw, (min-width: 1280px) 16vw") {
+  if (poster_sizes != "50vw, (min-width: 480px) 34vw, (min-width: 600px) 26vw, (min-width: 1024px) 16vw, (min-width: 1280px) 16vw" && poster_loading != "eager") {
     return `
           https://upload.wikimedia.org/wikipedia/commons/archive/c/c2/20170513175702%21No_image_poster.png
     `
@@ -107,7 +108,7 @@ async function search_movie_on_db(id_filme) {
     );
 
     if (result.length < 1) {
-      console.log('❌ Filme não encontrado no banco de dados');
+      console.log(`❌ Filme ${id_filme} não encontrado no banco de dados`);
       return null;
     } else {
       console.log("Filme encontrado no banco de dados!");

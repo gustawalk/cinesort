@@ -414,28 +414,59 @@
 
         async function movie_modal(data, list){
           const movie_info = data
+          console.log(movie_info)
           const list_id = list;
           const sorted_movie = document.getElementById("sorted-movie");
 
           sorted_movie.classList.add("fixed", "inset-0", "z-50");
           sorted_movie.innerHTML = `
             <div class="flex items-center justify-center min-h-screen bg-black bg-opacity-50 backdrop-blur-sm animate-fade-in">
-              <div class="flex flex-col items-center text-center bg-stone-900 text-white p-8 pl-16 pr-16 rounded-lg shadow-lg w-full max-w-sm mx-auto scale-95">
-              <h2 class="text-xl font-bold">${movie_info.titulo} - ${movie_info.ano}</h2>
-              <h4 class="text-sm text-gray-300">${movie_info.duracao}</h4>
-              <img src="${movie_info.poster}" alt="Poster" class="w-full h-auto rounded-lg mt-3">
-              <label for="rating" class="mt-4">Rate this movie</label>
-              <div class="flex items-center justify-center gap-2 mt-1">
-            <input id="rating" type="number" min="0" max="100" value="0"
-                  class="w-20 text-center font-semibold text-black [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none px-2 py-1 rounded-md">
+              <div class="flex flex-col items-center text-center bg-stone-900 text-white p-8 pl-8 pr-8 rounded-lg shadow-lg w-full max-w-sm mx-auto scale-95">
+                <div class="flex items-center justify-center mb-4 gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="80" height="30" viewBox="0 0 80 30">
+                  <rect width="80" height="30" fill="#F5C518" rx="8" ry="8"/>
+                  <text
+                  x="50%"
+                  y="50%"
+                  text-anchor="middle"
+                  dominant-baseline="middle"
+                  dy=".1em"
+                  font-family="Arial, sans-serif"
+                  font-size="16"
+                  fill="black"
+                  font-weight="bold">
+                  IMDB
+                  </text>
+                  </svg>
+                  <svg class="w-6 h-6 text-yellow-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                       width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495
+                             2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067
+                             2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436
+                             2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z"/>
+                    <title>IMDB Rating</title>
+                  </svg>
+                  <span class="text-lg font-bold text-white">${data.imdb_rate} / 10</span>
+                </div>
+
+                <h2 class="text-xl font-bold">${movie_info.titulo} - ${movie_info.ano}</h2>
+                <h4 class="text-sm text-gray-300">${movie_info.duracao}</h4>
+                <img src="${movie_info.poster}" alt="Poster" class="w-full h-auto rounded-lg mt-3">
+
+                <label for="rating" class="mt-4">Rate this movie</label>
+                <div class="flex items-center justify-center gap-2 mt-1">
+                <input id="rating" type="number" min="0" max="100" value="0"
+                class="w-20 text-center font-semibold text-black [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none px-2 py-1 rounded-md">
                 <span class="font-semibold text-white">/ 10.0</span>
               </div>
+
               <button id="close-modal" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-8 rounded-lg transition">
-                  Set as watched
+              Set as watched
               </button>
               <p class='text-gray-300'>(You don't have choice)</p>
-              </div>
+
             </div>
+          </div>
           `
 
           document.getElementById("rating").addEventListener("input", () => {

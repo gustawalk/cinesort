@@ -1,140 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Search</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐵</text></svg>">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Search</title>
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐵</text></svg>">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+
 <body class="bg-stone-800 text-white flex flex-col items-center justify-center min-h-screen p-4">
-    <button onclick="window.location.href='/logout'"
-        class="absolute top-4 left-4 bg-stone-700 hover:bg-stone-600 text-white px-4 py-2 rounded-lg shadow-md transition">
-        Logout
-    </button>
-    <div id="edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-        <div class="bg-stone-900 text-white p-6 rounded-lg shadow-lg w-full max-w-md max-h-[70vh] overflow-hidden flex flex-col">
-              <h2 id="edit-modal-title" class="text-xl font-bold mb-4"></h2>
-                <div id="edit-movie-list" class="overflow-auto flex-1 p-2 border border-stone-700 rounded-lg max-h-120">
-                  <ul id="movie-list-ul">
-                  </ul>
-                </div>
-                <button id="close-edit-modal" class="mt-4 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition">
-                   Close
-                </button>
-            </div>
+  <button onclick="window.location.href='/logout'"
+    class="absolute top-4 left-4 bg-stone-700 hover:bg-stone-600 text-white px-4 py-2 rounded-lg shadow-md transition">
+    Logout
+  </button>
+  <div id="edit-modal"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+    <div
+      class="bg-stone-900 text-white p-6 rounded-lg shadow-lg w-full max-w-md max-h-[70vh] overflow-hidden flex flex-col">
+      <h2 id="edit-modal-title" class="text-xl font-bold mb-4"></h2>
+      <div id="edit-movie-list" class="overflow-auto flex-1 p-2 border border-stone-700 rounded-lg max-h-120">
+        <ul id="movie-list-ul">
+        </ul>
       </div>
-    <div id="sorted-movie">
-
+      <button id="close-edit-modal"
+        class="mt-4 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition">
+        Close
+      </button>
     </div>
-    <div class="flex justify-between w-full max-w-xl items-center relative">
-        <div class="bg-stone-700 p-6 rounded-lg shadow-lg w-full max-w-md text-center max-h-[70vh] overflow-auto">
-            <h1 class="text-2xl font-bold mb-4">Search for a Movie</h1>
-            <div class="flex space-x-2">
-                <input type="text" id="movie-input" class="w-full p-2 rounded-lg text-black" placeholder="Enter movie name">
-                <button onclick="search_movie_db()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-150">Search</button>
-            </div>
-            <div id="movies-table" class="mt-4 text-left text-lg"></div>
-        </div>
+  </div>
+  <div id="sorted-movie">
 
-        <div class="flex flex-col space-y-6 absolute left-[calc(100%+2rem)] top-1/2 -translate-y-1/2">
-          <div class="bg-stone-700 p-7 rounded-lg shadow-lg w-80 text-center flex-shrink-0">
-
-              <div class="flex items-center justify-center gap-2">
-                <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                  <title>Search for a movie to create a new list</title>
-                  <path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm9.408-5.5a1 1 0 1 0 0 2h.01a1 1 0 1 0 0-2h-.01ZM10 10a1 1 0 1 0 0 2h1v3h-1a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2h-1v-4a1 1 0 0 0-1-1h-2Z" clip-rule="evenodd"/>
-                </svg>
-                <label for="user-lists" class="text-white font-semibold">User lists</label>
-              </div>
-              <br>
-              <select id="user-lists" class="bg-stone-600 text-white px-6 py-2 rounded-lg">
-              </select>
-              <div class="mt-4 flex justify-between space-x-2">
-                  <button id="sort" class="bg-green-500 hover:bg-green-700 text-white py-2 px-6 rounded-lg transition duration-150">Sort</button>
-                  <button id="edit" class="bg-yellow-500 hover:bg-yellow-700 text-white py-2 px-6 rounded-lg transition duration-150">Edit</button>
-                  <button id="delete" class="bg-red-500 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition duration-150">Delete</button>
-              </div>
-          </div>
-
-          <div class="bg-stone-700 p-7 rounded-lg shadow-lg w-80 text-left flex-shrink-0">
-            <div class="flex items-center justify-center gap-2">
-              <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                <title>Click on the items to view more details</title>
-                <path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm9.408-5.5a1 1 0 1 0 0 2h.01a1 1 0 1 0 0-2h-.01ZM10 10a1 1 0 1 0 0 2h1v3h-1a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2h-1v-4a1 1 0 0 0-1-1h-2Z" clip-rule="evenodd"/>
-              </svg>
-
-              <h1 class="text-center font-semibold">User Statistics</h1>
-            </div>
-              <br>
-              <h3 class="font-medium grid grid-cols-2">
-                <span>Last Movie</span>
-                <span class="text-blue-400 font-bold text-right hover:text-blue-700 transition duration-150" id="last-movie"></span>
-              </h3>
-              <h3 class="font-medium grid grid-cols-2 pt-3">
-                <span>Watched Movies</span>
-                <span class="text-blue-400 font-bold text-right hover:text-blue-700 transition duration-150" id="user-watched-count"></span>
-              </h3>
-              <h3 class="font-medium grid grid-cols-2 pt-3">
-                <span>Highest Rated</span>
-                <span class="text-blue-400 font-bold text-right hover:text-blue-700 transition duration-150" id="highest-rated"></span>
-              </h3>
-              <h3 class="font-medium grid grid-cols-2 pt-3">
-                <span>Lowest Rated</span>
-                <span class="text-blue-400 font-bold text-right hover:text-blue-700 transition duration-150" id="lowest-rated"></span>
-              </h3>
-          </div>
-        </div>
+  </div>
+  <div class="flex justify-between w-full max-w-xl items-center relative">
+    <div class="bg-stone-700 p-6 rounded-lg shadow-lg w-full max-w-md text-center max-h-[70vh] overflow-auto">
+      <h1 class="text-2xl font-bold mb-4">Search for a Movie</h1>
+      <div class="flex space-x-2">
+        <input type="text" id="movie-input" class="w-full p-2 rounded-lg text-black" placeholder="Enter movie name">
+        <button onclick="search_movie_db()"
+          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-150">Search</button>
+      </div>
+      <div id="movies-table" class="mt-4 text-left text-lg"></div>
     </div>
 
-    <script>
-        function updateSearch(){
-          var input, filter, li, a, i, txtValue;
-          input = document.getElementById("search-list-input");
-          filter = input.value.toUpperCase();
-          li = document.getElementsByClassName("movie-in-list");
+    <div class="flex flex-col space-y-6 absolute left-[calc(100%+2rem)] top-1/2 -translate-y-1/2">
+      <div class="bg-stone-700 p-12 rounded-lg shadow-lg w-[400px] text-center flex-shrink-0 space-y-6">
+        <div class="flex items-center justify-center gap-2">
+          <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+            width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+            <title>Search for a movie to create a new list</title>
+            <path fill-rule="evenodd"
+              d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm9.408-5.5a1 1 0 1 0 0 2h.01a1 1 0 1 0 0-2h-.01ZM10 10a1 1 0 1 0 0 2h1v3h-1a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2h-1v-4a1 1 0 0 0-1-1h-2Z"
+              clip-rule="evenodd" />
+          </svg>
+          <label for="user-lists" class="text-white font-semibold">User lists</label>
+        </div>
 
-          for(i=0; i < li.length; i++){
-            a = li[i];
-            txtValue = a.textContent || a.innerText;
-            txtValue = txtValue.split("\nDelete")[0]
-            if(txtValue.toUpperCase().indexOf(filter) > -1){
-              li[i].classList.remove("hidden");
-            }else{
-              li[i].classList.add("hidden");
-            }
-          }
+        <div class="flex justify-center items-center gap-2">
+          <select id="user-lists" class="bg-stone-600 text-white px-4 py-2 rounded-lg">
+          </select>
+          <button id="newlist"
+            class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition duration-150">Create</button>
+        </div>
+
+        <div class="flex justify-center gap-3">
+          <button id="sort"
+            class="bg-green-500 hover:bg-green-700 text-white py-2 px-5 rounded-lg transition duration-150">Sort</button>
+          <button id="edit"
+            class="bg-yellow-500 hover:bg-yellow-700 text-white py-2 px-5 rounded-lg transition duration-150">Edit</button>
+          <button id="delete"
+            class="bg-red-500 hover:bg-red-700 text-white py-2 px-5 rounded-lg transition duration-150">Delete</button>
+        </div>
+      </div>
+
+
+      <div class="bg-stone-700 p-7 rounded-lg shadow-lg w-[400px] text-left flex-shrink-0">
+        <div class="flex items-center justify-center gap-2">
+          <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+            width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+            <title>Click on the items to view more details</title>
+            <path fill-rule="evenodd"
+              d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm9.408-5.5a1 1 0 1 0 0 2h.01a1 1 0 1 0 0-2h-.01ZM10 10a1 1 0 1 0 0 2h1v3h-1a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2h-1v-4a1 1 0 0 0-1-1h-2Z"
+              clip-rule="evenodd" />
+          </svg>
+
+          <h1 class="text-center font-semibold">User Statistics</h1>
+        </div>
+        <br>
+        <h3 class="font-medium grid grid-cols-2">
+          <span>Last Movie</span>
+          <span class="text-blue-400 font-bold text-right hover:text-blue-700 transition duration-150"
+            id="last-movie"></span>
+        </h3>
+        <h3 class="font-medium grid grid-cols-2 pt-3">
+          <span>Watched Movies</span>
+          <span class="text-blue-400 font-bold text-right hover:text-blue-700 transition duration-150"
+            id="user-watched-count"></span>
+        </h3>
+        <h3 class="font-medium grid grid-cols-2 pt-3">
+          <span>Highest Rated</span>
+          <span class="text-blue-400 font-bold text-right hover:text-blue-700 transition duration-150"
+            id="highest-rated"></span>
+        </h3>
+        <h3 class="font-medium grid grid-cols-2 pt-3">
+          <span>Lowest Rated</span>
+          <span class="text-blue-400 font-bold text-right hover:text-blue-700 transition duration-150"
+            id="lowest-rated"></span>
+        </h3>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function updateSearch() {
+      var input, filter, li, a, i, txtValue;
+      input = document.getElementById("search-list-input");
+      filter = input.value.toUpperCase();
+      li = document.getElementsByClassName("movie-in-list");
+
+      for (i = 0; i < li.length; i++) {
+        a = li[i];
+        txtValue = a.textContent || a.innerText;
+        txtValue = txtValue.split("\nDelete")[0]
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+          li[i].classList.remove("hidden");
+        } else {
+          li[i].classList.add("hidden");
         }
+      }
+    }
 
-        document.getElementById("edit").addEventListener("click", async(e) => {
-          const list = document.getElementById("user-lists").value
-          const list_name = document.getElementById("user-lists").options[document.getElementById("user-lists").selectedIndex].text;
+    document.getElementById("newlist").addEventListener("click", async (e) => {
+      const {value: listName} = await Swal.fire({
+        title: "Create a new list",
+        input: "text",
+        inputPlaceholder: "Enter your list name",
+        showCancelButton: true,
+        confirmButtonText: "Create",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#2563eb",
+        cancelButtonColor: "#d33",
+        background: "#1c1917",
+        color: "#ffffff",
+        inputAttributes: {
+          maxlength: 50,
+          autocapitalize: "off",
+          autocorrect: "off"
+        }
+      });
 
-          const response = await fetch("/api/list/edit", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ list_id: list })
-          })
+      if (listName) {
+        const response = await fetch("/api/list/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({list_name: listName})
+        })
+        if (response.status == 409) {
+          Swal.fire({
+            title: "This list already exists",
+            text: "Try putting a different name!",
+            icon: "error",
+            background: "#1c1917",
+            color: "#ffffff",
+            iconColor: "#ef4444",
+            confirmButtonText: "Ok",
+            confirmButtonColor: "#2563eb",
+          });
+        } else if (response.status == 200) {
+          window.location.reload();
+        }
+      }
+    });
 
-          if(response.status != 200){
-            Swal.fire({
-              title: "No lists found!",
-              text: "Search for a movie and create your list!",
-              icon: "error",
-              background: "#1c1917",
-              color: "#ffffff",
-              iconColor: "#ef4444",
-              confirmButtonText: "Ok",
-              confirmButtonColor: "#2563eb",
-            });
-          }
+    document.getElementById("edit").addEventListener("click", async (e) => {
+      const list = document.getElementById("user-lists").value
+      const list_name = document.getElementById("user-lists").options[document.getElementById("user-lists").selectedIndex].text;
 
-          const data = await response.json()
+      const response = await fetch("/api/list/edit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({list_id: list})
+      })
 
-          document.getElementById("edit-modal-title").innerHTML = `
+      if (response.status != 200) {
+        Swal.fire({
+          title: "No lists found!",
+          text: "Search for a movie and create your list!",
+          icon: "error",
+          background: "#1c1917",
+          color: "#ffffff",
+          iconColor: "#ef4444",
+          confirmButtonText: "Ok",
+          confirmButtonColor: "#2563eb",
+        });
+      }
+
+      const data = await response.json()
+
+      document.getElementById("edit-modal-title").innerHTML = `
             Editing: ${list_name}
             <br>
             <div class="flex justify-between items-center">
@@ -151,166 +220,191 @@
             </div>
           `;
 
-          const movie_list_container = document.getElementById("edit-movie-list");
-          movie_list_container.innerHTML = "";
+      const movie_list_container = document.getElementById("edit-movie-list");
+      movie_list_container.innerHTML = "";
 
-          if(data.movies.length == 0){
-            movie_list_container.innerHTML = "<p class='text-center text-gray-400'>You don't have any movie in this list.</p>";
-          }else{
-            data.movies.forEach(movie => {
-              const movie_item = document.createElement("div");
-              movie_item.classList.add("p-2", "border-b", "border-stone-700", "text-white", "flex", "justify-between", "movie-in-list");
+      if (data.movies.length == 0) {
+        movie_list_container.innerHTML = "<p class='text-center text-gray-400'>You don't have any movie in this list.</p>";
+      } else {
+        data.movies.forEach(movie => {
+          const movie_item = document.createElement("div");
+          movie_item.classList.add("p-2", "border-b", "border-stone-700", "text-white", "flex", "justify-between", "movie-in-list");
 
-              movie_item.innerHTML = `
+          movie_item.innerHTML = `
                 <a href='/detail/${movie.imdb_id}' class='text-white hover:text-blue-500 transition duration-150'>${movie.titulo}</a>
                 <button class='text-blue-300 delete-btn hover:text-blue-200' data-id="${movie.imdb_id}">Delete</button>
               `;
 
-              movie_list_container.appendChild(movie_item);
-            });
-          }
+          movie_list_container.appendChild(movie_item);
+        });
+      }
 
-          document.querySelectorAll(".delete-btn").forEach(button => {
-            button.addEventListener("click", async (event) => {
-              const movie_id = event.target.getAttribute("data-id");
+      document.querySelectorAll(".delete-btn").forEach(button => {
+        button.addEventListener("click", async (event) => {
+          const movie_id = event.target.getAttribute("data-id");
 
-              const response = await fetch("/api/list/edit/delete", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ movie_id: movie_id, list_id: list})
-              });
-
-              if(response.status != 200){
-                return
-              }
-
-              window.location.reload();
-            });
+          const response = await fetch("/api/list/edit/delete", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({movie_id: movie_id, list_id: list})
           });
 
-          document.getElementById("edit-modal").classList.remove("hidden");
-        });
-
-        document.getElementById("close-edit-modal").addEventListener("click", () => {
-                document.getElementById("edit-modal").classList.add("hidden");
-        });
-        document.getElementById("sort").addEventListener("click", async (e) => {
-          const list = document.getElementById("user-lists").value
-
-          const response = await fetch("/api/list/sort", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({ list_id: list })
-          })
-
-          if(response.status != 200){
-            if(response.status == 401){
-              Swal.fire({
-                title: "Your list is empty",
-                text: "Add some movies to enable random selection!",
-                icon: "error",
-                background: "#1c1917",
-                color: "#ffffff",
-                iconColor: "#ef4444",
-                confirmButtonText: "Ok",
-                confirmButtonColor: "#2563eb",
-              });
-
-              return;
-            }
-              Swal.fire({
-                title: "No lists found!",
-                text: "Search for a movie and create your list!",
-                icon: "error",
-                background: "#1c1917",
-                color: "#ffffff",
-                iconColor: "#ef4444",
-                confirmButtonText: "Ok",
-                confirmButtonColor: "#2563eb",
-              });
-            return;
+          if (response.status != 200) {
+            return
           }
 
-          const data = await response.json()
+          window.location.reload();
+        });
+      });
 
-          movie_modal(data.rows[0], list);
-        })
+      document.getElementById("edit-modal").classList.remove("hidden");
+    });
 
-        document.getElementById("delete").addEventListener("click", async (e) => {
-            const list = document.getElementById("user-lists").value
+    document.getElementById("close-edit-modal").addEventListener("click", () => {
+      document.getElementById("edit-modal").classList.add("hidden");
+    });
+    document.getElementById("sort").addEventListener("click", async (e) => {
+      const list = document.getElementById("user-lists").value
 
-            const response = await fetch("/api/list/delete", {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ list_id: list })
-            })
+      const response = await fetch("/api/list/sort", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({list_id: list})
+      })
 
-            if(response.status == 200){
-                window.location.reload()
-            }else{
-              Swal.fire({
-                title: "No lists found!",
-                text: "Search for a movie and create your list!",
-                icon: "error",
-                background: "#1c1917",
-                color: "#ffffff",
-                iconColor: "#ef4444",
-                confirmButtonText: "Ok",
-                confirmButtonColor: "#2563eb",
-              });
-            }
-        })
+      if (response.status != 200) {
+        if (response.status == 401) {
+          Swal.fire({
+            title: "Your list is empty",
+            text: "Add some movies to enable random selection!",
+            icon: "error",
+            background: "#1c1917",
+            color: "#ffffff",
+            iconColor: "#ef4444",
+            confirmButtonText: "Ok",
+            confirmButtonColor: "#2563eb",
+          });
 
-        async function load_user_watched_count(){
-          const span_count = document.getElementById("user-watched-count");
-          const highest_rated = document.getElementById("highest-rated");
-          const lowest_rated = document.getElementById("lowest-rated");
-          const last_movie = document.getElementById("last-movie");
+          return;
+        }
+        Swal.fire({
+          title: "No lists found!",
+          text: "Search for a movie and create your list!",
+          icon: "error",
+          background: "#1c1917",
+          color: "#ffffff",
+          iconColor: "#ef4444",
+          confirmButtonText: "Ok",
+          confirmButtonColor: "#2563eb",
+        });
+        return;
+      }
 
-          const response = await fetch("/api/user-watched-count");
-          if(response.status == 404){
-            span_count.innerHTML = "No data";
-            highest_rated.innerHTML = "No data";
-            lowest_rated.innerHTML = "No data";
-            last_movie.innerHTML = "No data";
-            window.location.href = "/login";
-            return;
+      const data = await response.json()
+
+      movie_modal(data.rows[0], list);
+    })
+
+    document.getElementById("delete").addEventListener("click", async (e) => {
+      const list = document.getElementById("user-lists").value
+
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        color: "#ffffff",
+        icon: "warning",
+        background: "#1c1917",
+        showCancelButton: true,
+        confirmButtonColor: "#2563eb",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes"
+      });
+
+      if (result.isConfirmed) {
+        try {
+          const response = await fetch("/api/list/delete", {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({list_id: list})
+          });
+
+          if (response.status === 200) {
+            window.location.reload();
+          } else {
+            await Swal.fire({
+              title: "No lists found!",
+              text: "Search for a movie and create your list!",
+              icon: "error",
+              background: "#1c1917",
+              color: "#ffffff",
+              iconColor: "#ef4444",
+              confirmButtonText: "Ok",
+              confirmButtonColor: "#2563eb",
+            });
           }
+        } catch (error) {
+          console.error("Error deleting list:", error);
+          await Swal.fire({
+            title: "Error!",
+            text: "Something went wrong while deleting the list.",
+            icon: "error",
+            confirmButtonText: "Ok",
+            confirmButtonColor: "#2563eb",
+          });
+        }
+      }
+    })
 
-          const data = await response.json();
-          span_count.innerHTML = `
+    async function load_user_watched_count() {
+      const span_count = document.getElementById("user-watched-count");
+      const highest_rated = document.getElementById("highest-rated");
+      const lowest_rated = document.getElementById("lowest-rated");
+      const last_movie = document.getElementById("last-movie");
+
+      const response = await fetch("/api/user-watched-count");
+      if (response.status == 404) {
+        span_count.innerHTML = "No data";
+        highest_rated.innerHTML = "No data";
+        lowest_rated.innerHTML = "No data";
+        last_movie.innerHTML = "No data";
+        window.location.href = "/login";
+        return;
+      }
+
+      const data = await response.json();
+      span_count.innerHTML = `
           <button type="button" id="all-watched">
             <div class="flex items-center gap-1">
             ${data.watchedCount}
             </div>
             </button>
           `;
-          if(data.highestRated.name_movie.length > 15){
-            data.highestRated.name_movie = data.highestRated.name_movie.slice(0, 13) + "...";
-          }
-          highest_rated.innerHTML = `<a href=/detail/${data.highestRated.id_movie}>${data.highestRated.name_movie}</a>`;
-          if(data.lowestRated.name_movie.length > 15){
-            data.lowestRated.name_movie = data.lowestRated.name_movie.slice(0, 13) + "...";
-          }
-          lowest_rated.innerHTML = `<a href=/detail/${data.lowestRated.id_movie}>${data.lowestRated.name_movie}</a>`;
-          if(data.lastMovie.name_movie.length > 15){
-            data.lastMovie.name_movie = data.lastMovie.name_movie.slice(0, 13) + "...";
-          }
-          last_movie.innerHTML = `<a href=/detail/${data.lastMovie.id_movie}>${data.lastMovie.name_movie}</a>`;
+      if (data.highestRated.name_movie.length > 15) {
+        data.highestRated.name_movie = data.highestRated.name_movie.slice(0, 13) + "...";
+      }
+      highest_rated.innerHTML = `<a href=/detail/${data.highestRated.id_movie}>${data.highestRated.name_movie}</a>`;
+      if (data.lowestRated.name_movie.length > 15) {
+        data.lowestRated.name_movie = data.lowestRated.name_movie.slice(0, 13) + "...";
+      }
+      lowest_rated.innerHTML = `<a href=/detail/${data.lowestRated.id_movie}>${data.lowestRated.name_movie}</a>`;
+      if (data.lastMovie.name_movie.length > 15) {
+        data.lastMovie.name_movie = data.lastMovie.name_movie.slice(0, 13) + "...";
+      }
+      last_movie.innerHTML = `<a href=/detail/${data.lastMovie.id_movie}>${data.lastMovie.name_movie}</a>`;
 
-          document.getElementById("all-watched").addEventListener("click", async (e) => {
+      document.getElementById("all-watched").addEventListener("click", async (e) => {
 
-            const response = await fetch("/api/users/all-watched");
+        const response = await fetch("/api/users/all-watched");
 
-            const data = await response.json();
+        const data = await response.json();
 
-            document.getElementById("edit-modal-title").innerHTML = `
+        document.getElementById("edit-modal-title").innerHTML = `
               Watched movies - ${data.total_view[0].total_sum}
               <br>
               <div class="flex justify-between items-center">
@@ -324,27 +418,27 @@
               </div>
             `;
 
-            const movie_list_container = document.getElementById("edit-movie-list");
-            movie_list_container.innerHTML = "";
+        const movie_list_container = document.getElementById("edit-movie-list");
+        movie_list_container.innerHTML = "";
 
-            if(data.movies.length == 0){
-              movie_list_container.innerHTML = "<p class='text-center text-gray-400'>You didn't watched any movie yet.</p>";
-            }else{
-              data.movies.forEach(movie => {
-                const movie_item = document.createElement("div");
-                movie_item.classList.add("p-2", "border-b", "border-stone-700", "text-white", "flex", "justify-between", "movie-in-list");
+        if (data.movies.length == 0) {
+          movie_list_container.innerHTML = "<p class='text-center text-gray-400'>You didn't watched any movie yet.</p>";
+        } else {
+          data.movies.forEach(movie => {
+            const movie_item = document.createElement("div");
+            movie_item.classList.add("p-2", "border-b", "border-stone-700", "text-white", "flex", "justify-between", "movie-in-list");
 
-                let score_fix = movie.score_movie.toString();
+            let score_fix = movie.score_movie.toString();
 
-                if(score_fix.length === 1){
-                  score_fix = `0.${score_fix[0]}`
-                }else if(score_fix.length === 2) {
-                  score_fix = `${score_fix[0]}.${score_fix[1]}`;
-                }else if(score_fix.length === 3) {
-                  score_fix = `${score_fix[0]}${score_fix[1]}`;
-                }
+            if (score_fix.length === 1) {
+              score_fix = `0.${score_fix[0]}`
+            } else if (score_fix.length === 2) {
+              score_fix = `${score_fix[0]}.${score_fix[1]}`;
+            } else if (score_fix.length === 3) {
+              score_fix = `${score_fix[0]}${score_fix[1]}`;
+            }
 
-                movie_item.innerHTML = `
+            movie_item.innerHTML = `
                   <a href='/detail/${movie.id_movie}' class='text-white hover:text-blue-500 transition duration-150'>
                     ${movie.name_movie}
                   </a>
@@ -361,65 +455,78 @@
                     <span class="text-sm text-gray-400">${score_fix}/10</span>
                   </div>
                 `;
-                movie_list_container.appendChild(movie_item);
-              });
-            }
-
-          document.getElementById("edit-modal").classList.remove("hidden");
-        });
+            movie_list_container.appendChild(movie_item);
+          });
         }
 
-        async function load_user_list(){
-            const list_selector = document.getElementById("user-lists");
+        document.getElementById("edit-modal").classList.remove("hidden");
+      });
+    }
 
-            const sort_button = document.getElementById("sort")
-            const edit_button = document.getElementById("edit")
-            const delete_button = document.getElementById("delete")
+    async function load_user_list() {
+      const list_selector = document.getElementById("user-lists");
 
-            const response = await fetch("/api/user-list");
-            if (response.status == 404) {
-                sort_button.classList.add("cursor-not-allowed")
-                sort_button.disabled = true;
-                edit_button.classList.add("cursor-not-allowed")
-                edit_button.disabled = true;
-                delete_button.classList.add("cursor-not-allowed")
-                delete_button.disabled = true;
-                list_selector.innerHTML = "<option>No lists found</option>";
-                return;
-          }else{
-                sort_button.classList.remove("cursor-not-allowed")
-                sort_button.disabled = false;
-                edit_button.classList.remove("cursor-not-allowed")
-                edit_button.disabled = false;
-                delete_button.classList.remove("cursor-not-allowed")
-                delete_button.disabled = false;
-          }
+      const sort_button = document.getElementById("sort")
+      const edit_button = document.getElementById("edit")
+      const delete_button = document.getElementById("delete")
 
-            const lists = await response.json();
-            list_selector.innerHTML = "";
+      const response = await fetch("/api/user-list");
+      if (response.status == 404) {
+        sort_button.classList.add("cursor-not-allowed")
+        sort_button.classList.add("bg-gray-500")
+        sort_button.classList.add("hover:bg-gray-500")
+        sort_button.disabled = true;
+        edit_button.classList.add("cursor-not-allowed")
+        edit_button.classList.add("bg-gray-500")
+        edit_button.classList.add("hover:bg-gray-500")
+        edit_button.disabled = true;
+        delete_button.classList.add("cursor-not-allowed")
+        delete_button.classList.add("bg-gray-500")
+        delete_button.classList.add("hover:bg-gray-500")
+        delete_button.disabled = true;
+        list_selector.innerHTML = "<option>No lists found</option>";
+        return;
+      } else {
 
-            lists.forEach(list => {
-                const option = document.createElement("option");
-                option.value = list.id;
-                option.textContent = list.nome_lista;
-                list_selector.appendChild(option);
-            });
-        }
+        sort_button.classList.remove("cursor-not-allowed")
+        sort_button.classList.remove("bg-gray-500")
+        sort_button.classList.remove("hover:bg-gray-500")
+        sort_button.disabled = false;
+        edit_button.classList.remove("cursor-not-allowed")
+        edit_button.classList.remove("bg-gray-500")
+        edit_button.classList.remove("hover:bg-gray-500")
+        edit_button.disabled = false;
+        delete_button.classList.remove("cursor-not-allowed")
+        delete_button.classList.remove("bg-gray-500")
+        delete_button.classList.remove("hover:bg-gray-500")
+        delete_button.disabled = false;
+      }
 
-        window.addEventListener("keydown", function (e) {
-          if(e.code === "Enter"){
-              search_movie_db();
-            }
-        });
+      const lists = await response.json();
+      list_selector.innerHTML = "";
 
-        async function movie_modal(data, list){
-          const movie_info = data
-          console.log(movie_info)
-          const list_id = list;
-          const sorted_movie = document.getElementById("sorted-movie");
+      lists.forEach(list => {
+        const option = document.createElement("option");
+        option.value = list.id;
+        option.textContent = list.nome_lista;
+        list_selector.appendChild(option);
+      });
+    }
 
-          sorted_movie.classList.add("fixed", "inset-0", "z-50");
-          sorted_movie.innerHTML = `
+    window.addEventListener("keydown", function (e) {
+      if (e.code === "Enter") {
+        search_movie_db();
+      }
+    });
+
+    async function movie_modal(data, list) {
+      const movie_info = data
+      console.log(movie_info)
+      const list_id = list;
+      const sorted_movie = document.getElementById("sorted-movie");
+
+      sorted_movie.classList.add("fixed", "inset-0", "z-50");
+      sorted_movie.innerHTML = `
             <div class="flex items-center justify-center min-h-screen bg-black bg-opacity-50 backdrop-blur-sm animate-fade-in">
               <div class="flex flex-col items-center text-center bg-stone-900 text-white p-8 pl-8 pr-8 rounded-lg shadow-lg w-full max-w-sm mx-auto scale-95">
                 <div class="flex items-center justify-center mb-4 gap-2">
@@ -469,102 +576,103 @@
           </div>
           `
 
-          document.getElementById("rating").addEventListener("input", () => {
-              let ratingInput = document.getElementById("rating")
-              let ratingValue = ratingInput.value.replace(/\D/g, "");
-              if (ratingValue.length > 1 && ratingValue[0] === "0") {
-                ratingValue = ratingValue.slice(1);
-              }
-              let intValue = parseInt(ratingValue || "0");
-              intValue = Math.min(100, Math.max(0, intValue));
-              ratingInput.value = (intValue / 10).toFixed(1);
-              ratingInput.dataset.intValue = intValue;
-             })
-          document.getElementById("close-modal").addEventListener("click", async () => {
-              const movie_rating = document.getElementById("rating").dataset.intValue
-
-              const data = await fetch("/api/list/sort/rate", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                  list_id: list_id,
-                  sorted_movie: movie_info.imdb_id,
-                  title_movie: movie_info.titulo,
-                  rating_movie: movie_rating
-                })
-              })
-
-              const response = await data.json();
-
-              load_user_watched_count();
-              sorted_movie.innerHTML = "";
-              sorted_movie.classList.remove("fixed", "inset-0", "z-50")
-
-          });
+      document.getElementById("rating").addEventListener("input", () => {
+        let ratingInput = document.getElementById("rating")
+        let ratingValue = ratingInput.value.replace(/\D/g, "");
+        if (ratingValue.length > 1 && ratingValue[0] === "0") {
+          ratingValue = ratingValue.slice(1);
         }
+        let intValue = parseInt(ratingValue || "0");
+        intValue = Math.min(100, Math.max(0, intValue));
+        ratingInput.value = (intValue / 10).toFixed(1);
+        ratingInput.dataset.intValue = intValue;
+      })
+      document.getElementById("close-modal").addEventListener("click", async () => {
+        const movie_rating = document.getElementById("rating").dataset.intValue
+
+        const data = await fetch("/api/list/sort/rate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            list_id: list_id,
+            sorted_movie: movie_info.imdb_id,
+            title_movie: movie_info.titulo,
+            rating_movie: movie_rating
+          })
+        })
+
+        const response = await data.json();
+
+        load_user_watched_count();
+        sorted_movie.innerHTML = "";
+        sorted_movie.classList.remove("fixed", "inset-0", "z-50")
+
+      });
+    }
 
 
-        async function check_dependency(){
-          const dependency_response = await fetch('/api/user/pendency', {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-          });
+    async function check_dependency() {
+      const dependency_response = await fetch('/api/user/pendency', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+      });
 
-          const data = await dependency_response.json();
+      const data = await dependency_response.json();
 
-          if (dependency_response.status == 209) {
-            return false;
-          }
+      if (dependency_response.status == 209) {
+        return false;
+      }
 
-          const list_id = data.list_id;
-          const movie_info = data.pendencia;
+      const list_id = data.list_id;
+      const movie_info = data.pendencia;
 
-          movie_modal(movie_info, list_id);
-        }
+      movie_modal(movie_info, list_id);
+    }
 
-        async function search_movie_db(){
-            var input = document.getElementById("movie-input").value;
-            input = input.toLowerCase();
+    async function search_movie_db() {
+      var input = document.getElementById("movie-input").value;
+      input = input.toLowerCase();
 
-            if(input.trim() == ""){
-              return;
-            }
+      if (input.trim() == "") {
+        return;
+      }
 
-            const tabela = document.getElementById("movies-table");
-            tabela.innerHTML = "<h2 class='text-white text-center animate-pulse'>Loading...</h2>";
+      const tabela = document.getElementById("movies-table");
+      tabela.innerHTML = "<h2 class='text-white text-center animate-pulse'>Loading...</h2>";
 
-            var response = await fetch(`/search/${input}`);
-            const data = await response.json();
+      var response = await fetch(`/search/${input}`);
+      const data = await response.json();
 
-            tabela.innerHTML = "";
-            data.map((res) => {
-                const url = new URL(res.link, 'https://www.imdb.com');
-                const pathname = url.pathname.split('/');
-                const movieId = pathname[2];
-                tabela.innerHTML += `<span class="text-white"><a href="/detail/${movieId}" class="text-blue-300 hover:text-blue-500">${res.title}</a> - ${res.year}</span><hr>`;
-            });
-        }
-        window.addEventListener('pageshow', function (event) {
-          load_user_list();
-          load_user_watched_count();
-          check_dependency();
-        });
+      tabela.innerHTML = "";
+      data.map((res) => {
+        const url = new URL(res.link, 'https://www.imdb.com');
+        const pathname = url.pathname.split('/');
+        const movieId = pathname[2];
+        tabela.innerHTML += `<span class="text-white"><a href="/detail/${movieId}" class="text-blue-300 hover:text-blue-500">${res.title}</a> - ${res.year}</span><hr>`;
+      });
+    }
+    window.addEventListener('pageshow', function (event) {
+      load_user_list();
+      load_user_watched_count();
+      check_dependency();
+    });
 
-        let lastFetchTime = 0;
-        window.addEventListener('focus', function(event){
-          const now = Date.now();
+    let lastFetchTime = 0;
+    window.addEventListener('focus', function (event) {
+      const now = Date.now();
 
-          if(now - lastFetchTime > 2500){
-            load_user_list();
-            load_user_watched_count();
-            check_dependency();
-            lastFetchTime = now;
-          }
-        });
-    </script>
+      if (now - lastFetchTime > 2500) {
+        load_user_list();
+        load_user_watched_count();
+        check_dependency();
+        lastFetchTime = now;
+      }
+    });
+  </script>
 </body>
+
 </html>

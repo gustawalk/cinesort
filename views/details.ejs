@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐵</text></svg>">
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐵</text></svg>">
     <title>Movie Detail</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+
 <body class="bg-stone-900 text-white flex items-center justify-center min-h-screen">
 
     <button onclick="window.history.back()"
-      class="absolute top-4 left-4 bg-stone-700 hover:bg-stone-600 text-white px-4 py-2 rounded-lg shadow-md transition">
+        class="absolute top-4 left-4 bg-stone-700 hover:bg-stone-600 text-white px-4 py-2 rounded-lg shadow-md transition">
         ← Home
     </button>
 
@@ -26,37 +29,34 @@
         <div class="flex flex-wrap items-center justify-center gap-4">
             <button type="submit" id="add-movie" disabled
                 class="transition duration-150 bg-stone-700 text-white cursor-not-allowed rounded-lg shadow-md px-6 py-3 hover:bg-stone-600">
-                    Add movie to your list
+                Add movie to your list
             </button>
 
             <div class="flex flex-col">
                 <select id="list-selector" class="bg-stone-700 text-white px-6 py-3 rounded-lg shadow-md">
                     <option>Preparing user lists...</option>
                 </select>
-
             </div>
+
+            <button id="newlist"
+                class="bg-blue-500 hover:bg-blue-700 text-white py-3 px-6 rounded-lg transition duration-150">
+                Create
+            </button>
         </div>
-        <form action="" id="new-list" class="flex gap-2 mt-2 flex-wrap">
-            <input type="text" id="new-list-input" placeholder="Your list name"
-                class="hidden p-2 bg-stone-700 text-white rounded-lg shadow-md" />
-            <button type="submit" id="new-list-button"
-                class="hidden bg-stone-700 text-white rounded-lg shadow-md px-4 py-2"
-            >Create</button>
-        </form>
     </div>
 
 
     <script>
-        async function load_user_list(){
+        async function load_user_list() {
             const list_selector = document.getElementById("list-selector");
 
             const response = await fetch("/api/user-list");
+
             if (response.status == 404) {
                 list_selector.innerHTML = "<option value='default'>No lists found</option>";
-                const new_list_option = document.createElement("option");
-                new_list_option.value = "new";
-                new_list_option.textContent = "Create new list";
-                list_selector.appendChild(new_list_option);
+                return;
+            } else if (response.status == 401) {
+                window.location.href = "/login";
                 return;
             }
 
@@ -69,14 +69,9 @@
                 option.textContent = list.nome_lista;
                 list_selector.appendChild(option);
             });
-
-            const new_list_option = document.createElement("option");
-            new_list_option.value = "new";
-            new_list_option.textContent = "New list";
-            list_selector.appendChild(new_list_option);
         }
 
-        document.getElementById("list-selector").addEventListener("change", function(){
+        document.getElementById("list-selector").addEventListener("change", function () {
             const newListInput = document.getElementById("new-list-input");
             const newButtonInput = document.getElementById("new-list-button")
             if (this.value === "new") {
@@ -97,7 +92,7 @@
             const movie_id = "<%= movie_id %>";
             const list_id = list_selector.value;
 
-            if(list_id == "new" || list_id == "default"){
+            if (list_id == "new" || list_id == "default") {
                 Swal.fire({
                     title: "Could not find any list!",
                     text: "Click in the list label on the right side of this button to create a new one.",
@@ -116,10 +111,10 @@
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ movie_imdb_id: movie_id, list_id: list_id})
+                body: JSON.stringify({movie_imdb_id: movie_id, list_id: list_id})
             })
 
-            if(response.status == 409){
+            if (response.status == 409) {
                 Swal.fire({
                     title: "The movie is already on this list",
                     text: "Try searching for another movie or switching the target list!",
@@ -132,7 +127,7 @@
                 });
             }
 
-            if(response.status == 209){
+            if (response.status == 209) {
                 Swal.fire({
                     title: "The list doesn't exist",
                     text: "Try creating a list and add it again!",
@@ -145,7 +140,7 @@
                 });
             }
 
-            if(response.status == 200){
+            if (response.status == 200) {
                 Swal.fire({
                     title: "Movie added successfully",
                     text: "Now give the random sort a try!",
@@ -159,36 +154,51 @@
             }
         })
 
-        document.getElementById("new-list").addEventListener("submit", async (e) => {
-            e.preventDefault()
-
-            let new_list_text = document.getElementById("new-list-input").value
-
-            const response = await fetch("/api/list/create", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ list_name: new_list_text })
-            })
-
-            if(response.status == 409){
-               Swal.fire({
-                title: "This list already exists",
-                text: "Try putting a different name!",
-                icon: "error",
+        document.getElementById("newlist").addEventListener("click", async (e) => {
+            const {value: listName} = await Swal.fire({
+                title: "Create a new list",
+                input: "text",
+                inputPlaceholder: "Enter your list name",
+                showCancelButton: true,
+                confirmButtonText: "Create",
+                cancelButtonText: "Cancel",
+                confirmButtonColor: "#2563eb",
+                cancelButtonColor: "#d33",
                 background: "#1c1917",
                 color: "#ffffff",
-                iconColor: "#ef4444",
-                confirmButtonText: "Ok",
-                confirmButtonColor: "#2563eb",
-              });
-            }else if(response.status == 200){
-               window.location.reload();
-            }
-        })
+                inputAttributes: {
+                    maxlength: 50,
+                    autocapitalize: "off",
+                    autocorrect: "off"
+                }
+            });
 
-        async function load_data(){
+            if (listName) {
+                const response = await fetch("/api/list/create", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({list_name: listName})
+                })
+                if (response.status == 409) {
+                    Swal.fire({
+                        title: "This list already exists",
+                        text: "Try putting a different name!",
+                        icon: "error",
+                        background: "#1c1917",
+                        color: "#ffffff",
+                        iconColor: "#ef4444",
+                        confirmButtonText: "Ok",
+                        confirmButtonColor: "#2563eb",
+                    });
+                } else if (response.status == 200) {
+                    window.location.reload();
+                }
+            }
+        });
+
+        async function load_data() {
             const movie_element = document.getElementById("movie-info");
             movie_element.innerHTML = `<p class="animate-pulse text-center">Loading...</p>`;
 
@@ -201,7 +211,7 @@
 
             const data = await response.json();
 
-            if(data.imdb_rate == ""){ data.imdb_rate = "??" }
+            if (data.imdb_rate == "") {data.imdb_rate = "??"}
 
             movie_element.innerHTML = `
                 <h2 class="text-2xl font-bold text-center mb-4 text-white">${data.titulo} - ${data.ano}</h2>
@@ -226,7 +236,7 @@
 
             const user_movie_rate_data = await user_movie_rate.json();
 
-            if(user_movie_rate_data.user_rated[0] == undefined){
+            if (user_movie_rate_data.user_rated[0] == undefined) {
                 movie_rate.innerHTML = `
                   <div class="flex items-center gap-2 align-middle -mb-8">
                     <svg xmlns="http://www.w3.org/2000/svg" width="80" height="30" viewBox="0 0 80 30">
@@ -256,15 +266,15 @@
                     <h1 class="text-lg font-bold">${data.imdb_rate} / 10</h1>
                   </div>
                 `;
-            }else{
+            } else {
                 let score_fix = user_movie_rate_data.user_rated[0].score_movie.toString();
 
-                if(score_fix.length === 1){
-                  score_fix = `0.${score_fix[0]}`
-                }else if(score_fix.length === 2) {
-                  score_fix = `${score_fix[0]}.${score_fix[1]}`;
-                }else if(score_fix.length === 3) {
-                  score_fix = `${score_fix[0]}${score_fix[1]}`;
+                if (score_fix.length === 1) {
+                    score_fix = `0.${score_fix[0]}`
+                } else if (score_fix.length === 2) {
+                    score_fix = `${score_fix[0]}.${score_fix[1]}`;
+                } else if (score_fix.length === 3) {
+                    score_fix = `${score_fix[0]}${score_fix[1]}`;
                 }
 
                 movie_rate.innerHTML = `
@@ -338,14 +348,15 @@
         });
 
         let lastFetchTime = 0;
-        window.addEventListener('focus', function(event){
-          const now = Date.now();
+        window.addEventListener('focus', function (event) {
+            const now = Date.now();
 
-          if(now - lastFetchTime > 2500){
-            load_user_list();
-            lastFetchTime = now;
-          }
+            if (now - lastFetchTime > 2500) {
+                load_user_list();
+                lastFetchTime = now;
+            }
         });
     </script>
 </body>
+
 </html>

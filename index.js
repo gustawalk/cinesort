@@ -7,17 +7,14 @@ const {
   hash_password,
   compare_hash_password
 } = require("./password_hash");
-const {
-  isNumber
-} = require("./config")
 const express = require("express");
 const session = require("express-session");
 require("dotenv").config();
 const pool = require("./db");
 const path = require("path");
-const puppeteerConf = require("./config");
 const app = express();
 const port = process.env.PORT;
+const { v4: uuidv4 } = require('uuid');
 
 app.use(
   session({
@@ -26,7 +23,7 @@ app.use(
     saveUninitialized: true,
     cookie: {
       secure: false,
-      maxAge: 24 * 60 * 60 * 1000
+      maxAge: (24 * 60 * 60 * 1000) * 30
     },
   }),
 );
@@ -140,9 +137,9 @@ app.post("/api/list/sort/rate", async (req, res) => {
 
   let raw_rate;
 
-  if(rating_movie == "" || rating_movie == undefined){
+  if (rating_movie == "" || rating_movie == undefined) {
     raw_rate = 0;
-  }else{
+  } else {
     raw_rate = rating_movie;
   }
 
@@ -256,8 +253,10 @@ app.post("/api/list/create", async (req, res) => {
   );
   if (rows.length != 0) return res.status(409).json({ error: "Ja existe uma lista com esse nome" });
 
+  const list_uuid = uuidv4();
+
   await pool.query(
-    `INSERT INTO listas (id_user_dono, nome_lista) VALUES (?, ?)`, [user_id, list_name]
+    `INSERT INTO listas (id_user_dono, nome_lista, uuid) VALUES (?, ?, ?)`, [user_id, list_name, list_uuid]
   );
 
   return res.status(200).json({ ok: "Ok" });
@@ -316,7 +315,7 @@ app.get("/search/:movie", async (req, res) => {
   res.json(movie_info);
 });
 
-app.get("/detail/:movie", authMiddleware, async (req, res) => {
+app.get("/detail/:movie", authMiddleware, (req, res) => {
   const movie_id = req.params.movie;
   res.render("details", { movie_id });
 });

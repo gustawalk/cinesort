@@ -1,5 +1,7 @@
 # CineSort
 
+URL do site: http://191.101.234.158:5555/
+
 Um site para quem sofre de indecisão na hora de escolher um filme! Com este projeto, você cria suas próprias listas de filmes e, com um clique, deixamos o destino decidir qual será o próximo filme da sua noite.
 
 ## Sobre o Projeto
@@ -14,4 +16,4 @@ Tecnologias utilizadas no projeto:
 - **Frontend:** EJS + TailwindCSS
 - **Backend:** NodeJs
 - **Banco de Dados:** MySQL/MariaDB
-- **API/Automação:** Puppeteer (IMDB) para a pesquisa e dados dos filmes
+- **API/Automação:** Cheerio + Axios para a pesquisa e dados dos filmes

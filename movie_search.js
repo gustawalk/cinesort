@@ -31,23 +31,34 @@ async function get_info_from_imdb(id_filme) {
     const titulo = getText('.hero__primary-text') || getText('h1') || "Error fetching title";
 
     let sinopse = $('[data-testid="plot-l"]').text().trim();
-
     if (!sinopse) sinopse = $('[data-testid="plot-xs_to_m"]').text().trim();
     if (!sinopse) sinopse = $('[data-testid="plot-xl"]').text().trim();
     if (!sinopse) sinopse = "Error fetching synopsis";
-
     sinopse = sinopse.replace(/Read all\s*$/i, '').trim();
 
     let poster_raw = $('.ipc-image');
 
-    const lista_sub_info = $('.cMcwpt .ipc-inline-list__item');
-    const metadata = $('.ipc-metadata-list-item__list-content-item');
+    let ano = "Error fetching year";
+    let duracao = "Error fetching movie duration";
 
-    const ano = lista_sub_info.eq(0).text().trim() || "Error fetching year";
-    const duracao = lista_sub_info.eq(2).text().trim() || lista_sub_info.eq(1).text().trim() || "Error fetching movie duration";
+    const inlineLists = $('ul.ipc-inline-list[role="presentation"]');
+    inlineLists.each((_, el) => {
+      const ul = $(el);
+      const items = ul.find('li');
+      const firstLink = ul.find('a').first().attr('href') || '';
+
+      if (firstLink.includes('/releaseinfo')) {
+        ano = items.eq(0).text().trim() || ano;
+        duracao = items.eq(2).text().trim() || items.eq(1).text().trim() || duracao;
+        return false;
+      }
+    });
+
+    const metadata = $('.ipc-metadata-list-item__list-content-item');
     const diretor = metadata.eq(0).text().trim() || "Error fetching director";
 
-    let poster = check_poster(poster_raw)
+    let poster = check_poster(poster_raw);
+
     const imdb_rate = $('div[data-testid="hero-rating-bar__aggregate-rating__score"] span').first().text();
 
     return {

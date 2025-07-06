@@ -1,6 +1,6 @@
 # CineSort
 
-URL do site: http://191.101.234.158:5555/
+URL do site: https://cinesort.gwalk.dev/
 
 Um site para quem sofre de indecisão na hora de escolher um filme! Com este projeto, você cria suas próprias listas de filmes e, com um clique, deixamos o destino decidir qual será o próximo filme da sua noite.
 

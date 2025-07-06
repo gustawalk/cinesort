@@ -92,6 +92,14 @@ app.post("/api/list/sort", async (req, res) => {
 
   const user_id = req.session.user.id;
 
+  const [has_pendency] = await pool.query(
+    `SELECT id FROM pendencias WHERE id_user_pendente = ?`, [user_id]
+  );
+
+  if (has_pendency[0] != undefined) {
+    return res.status(202).json({ ok: "Voce tem pendencias" })
+  }
+
   const [rows] = await pool.query(
     `SELECT ml.* FROM movie_lists AS ml JOIN listas ON ml.id_lista_origem = ? AND listas.id_user_dono = ? ORDER BY RAND() LIMIT 1`, [list_id, user_id]
   );

@@ -27,9 +27,9 @@
             <p class="animate-pulse">Loading...</p>
         </div>
         <div class="flex flex-wrap items-center justify-center gap-4">
-            <button type="submit" id="add-movie" disabled
-                class="transition duration-150 bg-stone-700 text-white cursor-not-allowed rounded-lg shadow-md px-6 py-3 hover:bg-stone-600">
-                Add movie to your list
+            <button id="newlist"
+                class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg transition duration-150">
+                Create
             </button>
 
             <div class="flex flex-col">
@@ -38,9 +38,9 @@
                 </select>
             </div>
 
-            <button id="newlist"
-                class="bg-blue-500 hover:bg-blue-700 text-white py-3 px-6 rounded-lg transition duration-150">
-                Create
+            <button type="submit" id="add-movie" disabled
+                class="transition duration-150 bg-green-700 text-white cursor-not-allowed rounded-lg shadow-md px-6 py-3 hover:bg-green-800">
+                Add movie to your list
             </button>
         </div>
     </div>
@@ -143,7 +143,7 @@
             if (response.status == 200) {
                 Swal.fire({
                     title: "Movie added successfully",
-                    text: "Now give the random sort a try!",
+                    text: "Now give the random picker a try!",
                     icon: "success",
                     background: "#1c1917",
                     color: "#ffffff",

@@ -67,7 +67,7 @@
 
         <div class="flex justify-center gap-3">
           <button id="sort"
-            class="bg-green-500 hover:bg-green-700 text-white py-2 px-5 rounded-lg transition duration-150">Sort</button>
+            class="bg-green-500 hover:bg-green-700 text-white py-2 px-5 rounded-lg transition duration-150">Pick</button>
           <button id="edit"
             class="bg-yellow-500 hover:bg-yellow-700 text-white py-2 px-5 rounded-lg transition duration-150">Edit</button>
           <button id="delete"
@@ -276,6 +276,7 @@
         body: JSON.stringify({list_id: list})
       })
 
+
       if (response.status != 200) {
         if (response.status == 401) {
           Swal.fire({
@@ -291,17 +292,31 @@
 
           return;
         }
-        Swal.fire({
-          title: "No lists found!",
-          text: "Search for a movie and create your list!",
-          icon: "error",
-          background: "#1c1917",
-          color: "#ffffff",
-          iconColor: "#ef4444",
-          confirmButtonText: "Ok",
-          confirmButtonColor: "#2563eb",
-        });
-        return;
+        else if(response.status == 202){
+          Swal.fire({
+            title: "You have a pendency!",
+            text: "You need to watch the movie to pick another one!",
+            icon: "error",
+            background: "#1c1917",
+            color: "#ffffff",
+            iconColor: "#ef4444",
+            confirmButtonText: "Ok",
+            confirmButtonColor: "#2563eb",
+          });
+          return;
+        }else{
+          Swal.fire({
+            title: "No lists found!",
+            text: "Search for a movie and create your list!",
+            icon: "error",
+            background: "#1c1917",
+            color: "#ffffff",
+            iconColor: "#ef4444",
+            confirmButtonText: "Ok",
+            confirmButtonColor: "#2563eb",
+          });
+          return;
+        }
       }
 
       const data = await response.json()
@@ -385,27 +400,33 @@
             </div>
             </button>
           `;
-      if (data.highestRated.name_movie.length > 15) {
-        data.highestRated.name_movie = data.highestRated.name_movie.slice(0, 13) + "...";
+      if(data.watchedCount != 0){
+        if (data.highestRated.name_movie.length > 15) {
+          data.highestRated.name_movie = data.highestRated.name_movie.slice(0, 13) + "...";
+        }
+        highest_rated.innerHTML = `<a href=/detail/${data.highestRated.id_movie}>${data.highestRated.name_movie}</a>`;
+        if (data.lowestRated.name_movie.length > 15) {
+          data.lowestRated.name_movie = data.lowestRated.name_movie.slice(0, 13) + "...";
+        }
+        lowest_rated.innerHTML = `<a href=/detail/${data.lowestRated.id_movie}>${data.lowestRated.name_movie}</a>`;
+        if (data.lastMovie.name_movie.length > 15) {
+          data.lastMovie.name_movie = data.lastMovie.name_movie.slice(0, 13) + "...";
+        }
+        last_movie.innerHTML = `<a href=/detail/${data.lastMovie.id_movie}>${data.lastMovie.name_movie}</a>`;
+      }else{
+        highest_rated.innerHTML = `None`
+        lowest_rated.innerHTML = `None`
+        last_movie.innerHTML = `None`
       }
-      highest_rated.innerHTML = `<a href=/detail/${data.highestRated.id_movie}>${data.highestRated.name_movie}</a>`;
-      if (data.lowestRated.name_movie.length > 15) {
-        data.lowestRated.name_movie = data.lowestRated.name_movie.slice(0, 13) + "...";
-      }
-      lowest_rated.innerHTML = `<a href=/detail/${data.lowestRated.id_movie}>${data.lowestRated.name_movie}</a>`;
-      if (data.lastMovie.name_movie.length > 15) {
-        data.lastMovie.name_movie = data.lastMovie.name_movie.slice(0, 13) + "...";
-      }
-      last_movie.innerHTML = `<a href=/detail/${data.lastMovie.id_movie}>${data.lastMovie.name_movie}</a>`;
-
       document.getElementById("all-watched").addEventListener("click", async (e) => {
 
         const response = await fetch("/api/users/all-watched");
 
         const data = await response.json();
-
+        let total_view = data.total_view[0].total_sum;
+        if(total_view == null){ total_view = 0 }
         document.getElementById("edit-modal-title").innerHTML = `
-              Watched movies - ${data.total_view[0].total_sum}
+              Watched movies - ${total_view}
               <br>
               <div class="flex justify-between items-center">
                 <input
@@ -415,16 +436,46 @@
                   placeholder="Search in this list..."
                   class="mt-3 px-2 py-1 rounded-xl border border-gray-600 bg-gray-200 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 w-52 text-sm"
                 >
+                <div class="-mt-4">
+                  <label for="sort-method" class="block text-sm text-white mb-1">Sort by:</label>
+                  <select id="sort-method" class="bg-stone-800 text-white rounded text-center text-base pb-[5px] pt-[5px] pl-3">
+                    <option value="score">Score</option>
+                    <option value="name">Name</option>
+                    <option value="times">Times Watched</option>
+                  </select>
+                </div>
               </div>
             `;
+        document.getElementById("sort-method").addEventListener("change", (e) => {
+          const method = e.target.value;
+          let sorting = '';
+          if (method === "score") {
+            sorting = data.movies.sort((a, b) => b.score_movie - a.score_movie);
+          } else if (method === "times") {
+            sorting = data.movies.sort((a, b) => b.times_watched - a.times_watched);
+          } else if (method === "name") {
+            sorting = data.movies.sort((a, b) => a.name_movie.localeCompare(b.name_movie));
+          }
 
-        const movie_list_container = document.getElementById("edit-movie-list");
-        movie_list_container.innerHTML = "";
+          render_watched(sorting);
+        });
 
         if (data.movies.length == 0) {
+          const movie_list_container = document.getElementById("edit-movie-list");
+          movie_list_container.innerHTML = "";
           movie_list_container.innerHTML = "<p class='text-center text-gray-400'>You didn't watched any movie yet.</p>";
         } else {
-          data.movies.forEach(movie => {
+          render_watched(data.movies.sort((a, b) => b.score_movie - a.score_movie));
+        }
+
+        document.getElementById("edit-modal").classList.remove("hidden");
+      });
+    }
+
+    function render_watched(movies){
+            const movie_list_container = document.getElementById("edit-movie-list");
+            movie_list_container.innerHTML = "";
+            movies.forEach(movie => {
             const movie_item = document.createElement("div");
             movie_item.classList.add("p-2", "border-b", "border-stone-700", "text-white", "flex", "justify-between", "movie-in-list");
 
@@ -457,10 +508,6 @@
                 `;
             movie_list_container.appendChild(movie_item);
           });
-        }
-
-        document.getElementById("edit-modal").classList.remove("hidden");
-      });
     }
 
     async function load_user_list() {
@@ -521,7 +568,6 @@
 
     async function movie_modal(data, list) {
       const movie_info = data
-      console.log(movie_info)
       const list_id = list;
       const sorted_movie = document.getElementById("sorted-movie");
 

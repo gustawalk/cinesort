@@ -86,6 +86,30 @@ app.get("/api/user-watched-count", async (req, res) => {
   return res.status(200).json({ watchedCount: count[0].count, highestRated: highest_rated[0], lowestRated: lowest_rated[0], lastMovie: last_movie[0] });
 });
 
+app.get("/api/random", async (req, res) => {
+  const user_id = req.session.user.id;
+
+  const [has_pendency] = await pool.query(
+    `SELECT id FROM pendencias WHERE id_user_pendente = ?`, [user_id]
+  );
+
+  if (has_pendency[0] != undefined) {
+    return res.status(202).json({ ok: "Voce tem pendencias" })
+  }
+
+  const [movie_random] = await pool.query(
+    `SELECT * FROM filmes ORDER BY RAND() LIMIT 1`
+  )
+
+  await pool.query(
+    `
+      INSERT INTO pendencias (id_user_pendente, filme_id_imdb, id_lista_origem) VALUES (?, ?, ?)
+    `, [user_id, movie_random[0].imdb_id, 0]
+  )
+
+  return res.status(200).json({ rows: movie_random });
+})
+
 app.post("/api/list/sort", async (req, res) => {
   const { list_id } = req.body;
   if (list_id == undefined) return res.status(404).json({ error: "Invalido" });
@@ -109,13 +133,14 @@ app.post("/api/list/sort", async (req, res) => {
     `SELECT * FROM filmes WHERE imdb_id = ?`, [rows[0].movie_imdb_id]
   );
 
+  if (movie_sorted.length == 0) return res.status(401).json({ error: "Nenhum filme foi encontrado!" });
+
   await pool.query(
     `
       INSERT INTO pendencias (id_user_pendente, filme_id_imdb, id_lista_origem) VALUES (?, ?, ?)
     `, [user_id, rows[0].movie_imdb_id, list_id]
   );
 
-  if (movie_sorted.length == 0) return res.status(401).json({ error: "Nenhum filme foi encontrado!" });
   res.status(200).json({ rows: movie_sorted });
 });
 

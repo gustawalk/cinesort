@@ -2,115 +2,107 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const pool = require('./db');
 
-function check_poster(poster) {
-  let first_poster = poster.first();
-  let poster_sizes = first_poster.attr("sizes");
-  let poster_loading = first_poster.attr("loading")
-
-  if (poster_sizes != "50vw, (min-width: 480px) 34vw, (min-width: 600px) 26vw, (min-width: 1024px) 16vw, (min-width: 1280px) 16vw" || poster_loading != "eager") {
-    return `
-          https://upload.wikimedia.org/wikipedia/commons/archive/c/c2/20170513175702%21No_image_poster.png
-    `
-  }
-  return first_poster.attr('src');
-}
-
-async function get_info_from_imdb(id_filme) {
+async function get_info_from_tmdb(id_filme) {
   try {
-    const url = `https://www.imdb.com/title/${id_filme}/`;
+    const url = `https://www.themoviedb.org/movie/${id_filme}`;
     const { data: html } = await axios.get(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0'
+        "User-Agent": "Mozilla/5.0",
+        "Accept-Language": "en-US,en;q=0.9"
       }
     });
 
     const $ = cheerio.load(html);
 
-    const getText = (selector) => $(selector).first().text().trim() || null;
+    const titulo = $('div.title a').first().text().trim() || "Error fetching title";
 
-    const titulo = getText('.hero__primary-text') || getText('h1') || "Error fetching title";
+    const ano = $('span.release_date')
+      .first()
+      .text()
+      .trim()
+      .match(/\d{4}/)?.[0] || "Error fetching year";
 
-    let sinopse = $('[data-testid="plot-l"]').text().trim();
-    if (!sinopse) sinopse = $('[data-testid="plot-xs_to_m"]').text().trim();
-    if (!sinopse) sinopse = $('[data-testid="plot-xl"]').text().trim();
-    if (!sinopse) sinopse = "Error fetching synopsis";
-    sinopse = sinopse.replace(/Read all\s*$/i, '').trim();
+    const duracao = $('span.runtime').text().trim() || "Error fetching duration";
 
-    let poster_raw = $('.ipc-image');
+    const sinopse = $('div.overview p').first().text().trim() || "Error fetching synopsis";
 
-    let ano = "Error fetching year";
-    let duracao = "Error fetching movie duration";
+    const poster = $('div.image_content img.poster').attr('src')
+      ? `${$('div.image_content img.poster').attr('src')}`
+      : "https://upload.wikimedia.org/wikipedia/commons/archive/c/c2/20170513175702%21No_image_poster.png";
 
-    const inlineLists = $('ul.ipc-inline-list[role="presentation"]');
-    inlineLists.each((_, el) => {
-      const ul = $(el);
-      const items = ul.find('li');
-      const firstLink = ul.find('a').first().attr('href') || '';
 
-      if (firstLink.includes('/releaseinfo')) {
-        ano = items.eq(0).text().trim() || ano;
-        duracao = items.eq(2).text().trim() || items.eq(1).text().trim() || duracao;
+    let score = $('div.user_score_chart').attr('data-percent') || "N/A";
+
+    if (score != "N/A" && score.length == 2) { score = `${score[0]}.${score[1]}` }
+    if (score != "N/A" && score.length == 1) { score = `0.${score[0]}` }
+
+    let diretor = "Error fetching director";
+    $('ol.people li.profile').each((_, el) => {
+      const role = $(el).find('.character').text().toLowerCase();
+      if (role.includes("director")) {
+        diretor = $(el).find('a').first().text().trim();
         return false;
       }
     });
 
-    const metadata = $('.ipc-metadata-list-item__list-content-item');
-    const diretor = metadata.eq(0).text().trim() || "Error fetching director";
-
-    let poster = check_poster(poster_raw);
-
-    const imdb_rate = $('div[data-testid="hero-rating-bar__aggregate-rating__score"] span').first().text();
-
     return {
       titulo,
-      sinopse,
       ano,
       duracao,
-      diretor,
+      sinopse,
       poster,
+      diretor,
       imdb_id: id_filme,
-      imdb_rate
+      imdb_rate: score
     };
   } catch (error) {
-    console.error("Erro ao buscar dados do IMDb:", error.message);
+    console.error("Erro ao buscar dados do TMDb:", error.message);
     return null;
   }
 }
 
-async function search_movie_on_imdb(filme) {
+
+async function search_movie_on_tmdb(filme) {
   try {
-    const url = `https://www.imdb.com/find/?q=${encodeURIComponent(filme)}&s=tt&ttype=ft&ref_=fn_mov`;
+    const url = `https://www.themoviedb.org/search/movie?query=${encodeURIComponent(filme)}`;
+    console.log(`Making a request on: ${url}`)
     const { data: html } = await axios.get(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0'
+        'User-Agent': 'Mozilla/5.0',
+        "Accept-Language": "en-US,en;q=0.9"
       }
     });
 
     const $ = cheerio.load(html);
-    const resultados = [];
+    const resultados = []
 
-    $('.ipc-metadata-list-summary-item').each((i, el) => {
-      const title = $(el).find('.ipc-metadata-list-summary-item__t').text().trim() || "Error fetching title";
-      const year = $(el).find('.ipc-metadata-list-summary-item__li').first().text().trim() || "Error fetching year";
-      const link = $(el).find('.ipc-metadata-list-summary-item__t').attr('href') || "Error fetching link";
-      const image = $(el).find('.ipc-image').attr('src') || "Image not found";
+    $('.card.v4.tight').each((i, el) => {
+      const container = $(el);
 
-      if (year.length === 4) {
+      const title = container.find('h2').first().text().trim();
+      const link = container.find('a.result').first().attr('href');
+      const mediaType = container.find('a.result').attr('data-media-type');
+      const releaseDateRaw = container.find('.release_date').first().text().trim();
+      const year = releaseDateRaw.match(/\d{4}/)?.[0] || "Unknown";
+      const image = container.find('.poster.w-full').attr('src') || "https://upload.wikimedia.org/wikipedia/commons/archive/c/c2/20170513175702%21No_image_poster.png";
+
+      if (mediaType == "movie") {
         resultados.push({
           title,
           year,
           link,
           image
-        });
+        })
       }
-    });
+    })
 
     return resultados;
   } catch (error) {
-    console.error("Erro ao buscar filme no IMDb:", error.message);
+    console.error("Erro ao buscar filme no TMDb:", error.message);
     return [];
   }
 }
+
 
 async function search_movie_on_db(id_filme) {
   try {
@@ -130,4 +122,4 @@ async function search_movie_on_db(id_filme) {
   }
 }
 
-module.exports = { search_movie_on_imdb, get_info_from_imdb, search_movie_on_db };
+module.exports = { search_movie_on_db, search_movie_on_tmdb, get_info_from_tmdb };

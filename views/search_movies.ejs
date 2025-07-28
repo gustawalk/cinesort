@@ -615,7 +615,7 @@
                   font-size="16"
                   fill="black"
                   font-weight="bold">
-                  IMDB
+                  TMDB
                   </text>
                   </svg>
                   <svg class="w-6 h-6 text-yellow-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
@@ -624,7 +624,7 @@
                              2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067
                              2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436
                              2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z"/>
-                    <title>IMDB Rating</title>
+                    <title>TMDB Rating</title>
                   </svg>
                   <span class="text-lg font-bold text-white">${data.imdb_rate} / 10</span>
                 </div>
@@ -722,10 +722,18 @@
 
       tabela.innerHTML = "";
       data.map((res) => {
-        const url = new URL(res.link, 'https://www.imdb.com');
+        const url = new URL(res.link, 'https://www.themoviedb.org');
         const pathname = url.pathname.split('/');
         const movieId = pathname[2];
-        tabela.innerHTML += `<span class="text-white"><a href="/detail/${movieId}" class="text-blue-300 hover:text-blue-500">${res.title}</a> - ${res.year}</span><hr>`;
+        tabela.innerHTML += `
+          <div class="flex items-center space-x-4 mb-2">
+            <img src="${res.image}" class="w-16 h-auto rounded shadow" />
+            <span class="text-white">
+              <a href="/detail/${movieId}" class="text-blue-300 hover:text-blue-500">${res.title}</a> - ${res.year}
+            </span>
+          </div>
+          <hr class="border-gray-600 my-2">
+        `;
       });
     }
     window.addEventListener('pageshow', function (event) {

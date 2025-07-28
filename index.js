@@ -1,7 +1,7 @@
 const {
-  search_movie_on_imdb,
+  search_movie_on_tmdb,
   search_movie_on_db,
-  get_info_from_imdb,
+  get_info_from_tmdb,
 } = require("./movie_search");
 const {
   hash_password,
@@ -343,7 +343,7 @@ app.get("/api/user-list", async (req, res) => {
 
 app.get("/search/:movie", async (req, res) => {
   const movie = req.params.movie;
-  const movie_info = await search_movie_on_imdb(movie);
+  const movie_info = await search_movie_on_tmdb(movie);
 
   res.json(movie_info);
 });
@@ -443,7 +443,7 @@ app.get("/api/detail/:movie", async (req, res) => {
   const movie_info = await search_movie_on_db(movie_id);
 
   if (movie_info == null) {
-    const movie_data = await get_info_from_imdb(movie_id);
+    const movie_data = await get_info_from_tmdb(movie_id);
     await pool.query(
       `INSERT INTO filmes (titulo, sinopse, ano, duracao, diretor, poster, imdb_id, imdb_rate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
